@@ -1,103 +1,165 @@
-import Image from "next/image";
+import { 
+  FaSearch, 
+  FaStar, 
+  FaShieldAlt,
+  FaUsers,
+  FaTrophy,
+  FaArrowRight
+} from 'react-icons/fa'
+import { GiCardExchange } from 'react-icons/gi'
+import Link from 'next/link'
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-100">
+      <Header />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {/* Hero Section */}
+      <section className="pt-12 sm:pt-16 pb-20 sm:pb-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="mb-8 sm:mb-12 animate-fade-in">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
+              すべての
+              <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent animate-pulse">
+                カードゲーム
+              </span>
+              <br />
+              プレイヤーが集う場所
+            </h1>
+            <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-6 sm:mb-8 max-w-3xl mx-auto leading-relaxed px-2">
+              Card Nexusは、カード情報の検索から売買・交換まで、
+              <br className="hidden sm:block" />
+              カードゲームライフのすべてを一つのプラットフォームで完結させます。
+            </p>
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-12 sm:mb-16 px-4">
+            <Link 
+              href="/auth/signup"
+              className="bg-indigo-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg hover:bg-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center space-x-2"
+            >
+              <span>今すぐ始める</span>
+              <FaArrowRight className="transition-transform group-hover:translate-x-1" />
+            </Link>
+            <Link 
+              href="#features"
+              className="border-2 border-indigo-600 text-indigo-600 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg hover:bg-indigo-50 transition-all duration-300 hover:-translate-y-0.5 flex items-center justify-center"
+            >
+              機能を見る
+            </Link>
+          </div>
+
+          {/* Hero Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 max-w-4xl mx-auto px-4">
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+              <div className="text-2xl sm:text-3xl font-bold text-indigo-600 mb-2">10,000+</div>
+              <div className="text-sm sm:text-base text-gray-600">登録カード数</div>
+            </div>
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+              <div className="text-2xl sm:text-3xl font-bold text-green-600 mb-2">500+</div>
+              <div className="text-sm sm:text-base text-gray-600">アクティブユーザー</div>
+            </div>
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+              <div className="text-2xl sm:text-3xl font-bold text-purple-600 mb-2">1,000+</div>
+              <div className="text-sm sm:text-base text-gray-600">成立取引数</div>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="py-16 sm:py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Card Nexusの主要機能
+            </h2>
+            <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-4">
+              カードゲームプレイヤーのために設計された、包括的な機能セット
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {/* Feature 1 */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 sm:p-8 rounded-xl hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
+              <FaSearch className="text-3xl sm:text-4xl text-indigo-600 mb-4 group-hover:scale-110 transition-transform duration-300" />
+              <h3 className="text-lg sm:text-xl font-semibold mb-3">カードデータベース</h3>
+              <p className="text-sm sm:text-base text-gray-600">
+                豊富なカード情報を瞬時に検索。レアリティ、効果、価格相場まで網羅的にカバー。
+              </p>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="bg-gradient-to-br from-green-50 to-emerald-100 p-6 sm:p-8 rounded-xl hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
+              <GiCardExchange className="text-3xl sm:text-4xl text-green-600 mb-4 group-hover:scale-110 transition-transform duration-300" />
+              <h3 className="text-lg sm:text-xl font-semibold mb-3">売買・交換掲示板</h3>
+              <p className="text-sm sm:text-base text-gray-600">
+                安全で便利な取引環境。欲しいカードを探したり、不要なカードを手放すことができます。
+              </p>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="bg-gradient-to-br from-yellow-50 to-amber-100 p-6 sm:p-8 rounded-xl hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
+              <FaStar className="text-3xl sm:text-4xl text-yellow-600 mb-4 group-hover:scale-110 transition-transform duration-300" />
+              <h3 className="text-lg sm:text-xl font-semibold mb-3">評価システム</h3>
+              <p className="text-sm sm:text-base text-gray-600">
+                取引相手の信頼性を確認。安心・安全な取引環境で、トラブルを未然に防ぎます。
+              </p>
+            </div>
+
+            {/* Feature 4 */}
+            <div className="bg-gradient-to-br from-purple-50 to-violet-100 p-6 sm:p-8 rounded-xl hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
+              <FaTrophy className="text-3xl sm:text-4xl text-purple-600 mb-4 group-hover:scale-110 transition-transform duration-300" />
+              <h3 className="text-lg sm:text-xl font-semibold mb-3">デッキ共有</h3>
+              <p className="text-sm sm:text-base text-gray-600">
+                オリジナルデッキを投稿・共有。他のプレイヤーの戦略から新しいアイデアを得られます。
+              </p>
+            </div>
+
+            {/* Feature 5 */}
+            <div className="bg-gradient-to-br from-red-50 to-rose-100 p-6 sm:p-8 rounded-xl hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
+              <FaShieldAlt className="text-3xl sm:text-4xl text-red-600 mb-4 group-hover:scale-110 transition-transform duration-300" />
+              <h3 className="text-lg sm:text-xl font-semibold mb-3">セキュリティ</h3>
+              <p className="text-sm sm:text-base text-gray-600">
+                最高レベルのセキュリティで個人情報を保護。安心してサービスをご利用いただけます。
+              </p>
+            </div>
+
+            {/* Feature 6 */}
+            <div className="bg-gradient-to-br from-teal-50 to-cyan-100 p-6 sm:p-8 rounded-xl hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
+              <FaUsers className="text-3xl sm:text-4xl text-teal-600 mb-4 group-hover:scale-110 transition-transform duration-300" />
+              <h3 className="text-lg sm:text-xl font-semibold mb-3">コミュニティ</h3>
+              <p className="text-sm sm:text-base text-gray-600">
+                活発なプレイヤーコミュニティ。情報交換や友達作りなど、より豊かなカードゲームライフを。
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 sm:py-24 bg-gradient-to-r from-indigo-600 to-purple-700">
+        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4 sm:mb-6">
+            今すぐCard Nexusを始めませんか？
+          </h2>
+          <p className="text-lg sm:text-xl text-indigo-100 mb-6 sm:mb-8 px-2">
+            無料でアカウント作成。すぐにカードゲームライフが充実します。
+          </p>
+          <Link 
+            href="/auth/signup"
+            className="bg-white text-indigo-600 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg hover:bg-gray-50 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 inline-flex items-center space-x-2"
+          >
+            <span>無料で始める</span>
+            <FaArrowRight className="transition-transform group-hover:translate-x-1" />
+          </Link>
+        </div>
+      </section>
+
+      <Footer />
     </div>
   );
 }
