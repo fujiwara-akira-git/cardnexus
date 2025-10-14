@@ -6,7 +6,7 @@ import { GiCardPlay } from 'react-icons/gi'
 import { NotificationCenter } from './dashboard/NotificationCenter'
 
 export default function Header() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
 
   // モック通知データ
   const notifications = [
@@ -52,6 +52,12 @@ export default function Header() {
               カード検索
             </Link>
             <Link 
+              href="/listings" 
+              className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
+            >
+              出品・求購
+            </Link>
+            <Link 
               href="/marketplace" 
               className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
             >
@@ -67,7 +73,9 @@ export default function Header() {
 
           {/* Authentication Buttons */}
           <div className="flex items-center space-x-4">
-            {session ? (
+            {status === 'loading' ? (
+              <div className="text-gray-500">読み込み中...</div>
+            ) : session ? (
               <>
                 <NotificationCenter notifications={notifications} />
                 <Link 
@@ -75,6 +83,12 @@ export default function Header() {
                   className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
                 >
                   ダッシュボード
+                </Link>
+                <Link 
+                  href={`/profile/${session.user?.id}`}
+                  className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
+                >
+                  プロフィール
                 </Link>
                 <span className="text-gray-700 font-medium">
                   {session.user?.name || session.user?.email}

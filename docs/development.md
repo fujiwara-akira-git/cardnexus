@@ -7,16 +7,19 @@
 
 ## 📅 プロジェクト進捗
 
-### ✅ Phase 0: プロジェクト基盤構築 (完了)
+### ✅ Phase 1: MVPコア機能 (完了 - 2024年10月14日)
 
 **実装済み項目:**
 - [x] Next.js 14 + TypeScript + Tailwind CSS セットアップ
 - [x] Prisma ORM + PostgreSQL データベース設計
-- [x] NextAuth.js 認証システム基盤
-- [x] プロジェクト構造とディレクトリ設計
-- [x] VS Code 開発環境とエクステンション
-- [x] GitHub リポジトリ連携
-- [x] 開発ドキュメントとガイドライン
+- [x] NextAuth.js 認証システム (Google/Discord OAuth)
+- [x] ユーザープロフィール管理 (`/profile/[username]`, `/dashboard`)
+- [x] カードデータベース機能 (`/cards`, `/cards/[id]`)
+- [x] 売買・取引システム (`/listings`, `/listings/create`)
+- [x] REST API エンドポイント実装
+- [x] レスポンシブデザイン対応
+- [x] Docker開発環境構築
+- [x] GitHub リポジトリ連携・プロジェクト文書
 
 **技術仕様:**
 - フロントエンド: Next.js 14 (App Router)

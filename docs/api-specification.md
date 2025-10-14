@@ -1,14 +1,55 @@
-# Card Nexus API 設計書
+# Card Nexus API 仕様書
 
-## 📋 API エンドポイント一覧
+## 概要
 
-### 🔐 認証関連
+Card Nexus のREST API エンドポイント一覧と使用方法を説明します。
+
+## 認証
+
+NextAuth.js セッションベース認証を使用しています。認証が必要なエンドポイントでは、有効なセッションが必要です。
+
+## 📋 実装済み API エンドポイント
+
+### 🔐 認証関連 (NextAuth.js)
 
 | Method | Endpoint | 説明 | 認証 |
 |--------|----------|------|------|
-| POST | `/api/auth/signup` | ユーザー新規登録 | - |
-| POST | `/api/auth/signin` | ログイン | - |
-| POST | `/api/auth/signout` | ログアウト | Required |
+| GET | `/api/auth/signin` | サインインページ | - |
+| POST | `/api/auth/signin` | サインイン処理 | - |
+| GET | `/api/auth/signout` | サインアウト処理 | - |
+| GET | `/api/auth/session` | セッション情報取得 | - |
+
+### 🃏 カード関連
+
+| Method | Endpoint | 説明 | 認証 | 実装状況 |
+|--------|----------|------|------|----------|
+| GET | `/api/cards` | カード一覧取得・検索 | - | ✅ |
+| GET | `/api/cards/[id]` | カード詳細取得 | - | ✅ |
+
+**GET /api/cards**
+- 検索・フィルター・ソート・ページネーション対応
+- クエリ: `search`, `gameTitle`, `rarity`, `expansion`, `sortBy`, `page`, `limit`
+
+**GET /api/cards/[id]**  
+- カード詳細情報・価格履歴・統計情報を返却
+
+### 📋 出品関連
+
+| Method | Endpoint | 説明 | 認証 | 実装状況 |
+|--------|----------|------|------|----------|
+| GET | `/api/listings` | 出品一覧取得・検索 | - | ✅ |
+| POST | `/api/listings` | 出品新規作成 | Required | ✅ |
+| GET | `/api/listings/[id]` | 出品詳細取得 | - | 📋 |
+| PUT | `/api/listings/[id]` | 出品更新 | Required | 📋 |
+| DELETE | `/api/listings/[id]` | 出品削除 | Required | 📋 |
+
+**GET /api/listings**
+- 売買・交換出品の検索・フィルター・ページネーション対応
+- クエリ: `search`, `type`, `cardId`, `userId`, `page`, `limit`
+
+**POST /api/listings** 
+- 売る・買う・交換の3タイプ対応
+- バリデーション: カードID、価格、状態、説明文
 | GET | `/api/auth/session` | セッション取得 | - |
 
 ### 👤 ユーザー管理

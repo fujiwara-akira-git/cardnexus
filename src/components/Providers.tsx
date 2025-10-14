@@ -9,7 +9,11 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <SessionProvider>
+    <SessionProvider
+      // エラーが発生した場合のハンドリング
+      refetchInterval={5 * 60} // 5分ごとにセッションを更新
+      refetchOnWindowFocus={true}
+    >
       {children}
     </SessionProvider>
   )

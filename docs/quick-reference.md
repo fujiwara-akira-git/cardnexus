@@ -1,6 +1,33 @@
-# Card Nexus 開発クイックリファレンス 🚀
+# Card Nexus 開発クイックリファレンス
 
-## データベース操作
+よく使うコマンドや操作をまとめたリファレンスです。
+
+## 🚀 実装済み機能一覧
+
+### ✅ 認証・ユーザー管理
+- NextAuth.js による認証 (Google/Discord OAuth)
+- ユーザープロフィール表示・編集
+- セッション管理
+
+### ✅ カードデータベース  
+- カード検索・一覧表示 (`/cards`)
+- カード詳細・価格履歴 (`/cards/[id]`)
+- フィルター・ソート・ページネーション
+
+### ✅ 売買・取引システム
+- 出品作成 (`/listings/create`) - 売る・買う・交換
+- 出品一覧 (`/listings`) - 検索・フィルター対応
+- リアルタイムカード検索・選択
+
+### ✅ API エンドポイント
+- `GET /api/cards` - カード検索
+- `GET /api/cards/[id]` - カード詳細
+- `GET /api/listings` - 出品一覧
+- `POST /api/listings` - 出品作成
+- `GET /api/profile/[username]` - プロフィール取得
+- `PUT /api/profile` - プロフィール更新
+
+## 📊 データベース関連
 
 ### Docker環境
 ```bash

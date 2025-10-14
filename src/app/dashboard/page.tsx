@@ -140,7 +140,7 @@ export default async function DashboardPage() {
               メッセージ
             </Link>
             <Link
-              href="/profile"
+              href={`/profile/${session.user?.id}`}
               className="flex items-center justify-center p-4 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
             >
               👤

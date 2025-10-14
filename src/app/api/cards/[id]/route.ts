@@ -6,10 +6,10 @@ const prisma = new PrismaClient()
 // カード詳細情報の取得
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const cardId = params.id
+    const { id: cardId } = await params
 
     // カード詳細の取得（価格履歴、アクティブな出品も含む）
     const card = await prisma.card.findUnique({
@@ -85,10 +85,19 @@ export async function GET(
         id: listing.id,
         type: listing.listingType,
         price: listing.price,
-        condition: listing.condition,
+        condition: listing.condition || 'UNKNOWN',
+        quantity: 1, // デフォルト値
         description: listing.description,
-        createdAt: listing.createdAt,
-        seller: listing.user
+        user: {
+          id: listing.user.id,
+          name: listing.user.username,
+          username: listing.user.username,
+          image: listing.user.profileImageUrl,
+          rating: listing.user.rating,
+          reviewCount: listing.user.ratingCount
+        },
+        createdAt: listing.createdAt.toISOString(),
+        expiresAt: null
       }))
     }
 
