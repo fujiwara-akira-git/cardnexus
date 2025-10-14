@@ -1,7 +1,32 @@
+'use client'
+
 import Link from 'next/link'
+import { useSession, signOut } from 'next-auth/react'
 import { GiCardPlay } from 'react-icons/gi'
+import { NotificationCenter } from './dashboard/NotificationCenter'
 
 export default function Header() {
+  const { data: session } = useSession()
+
+  // モック通知データ
+  const notifications = [
+    {
+      id: '1',
+      title: '新しいメッセージ',
+      message: 'ピカチュウVMAXについて質問が届きました',
+      type: 'info' as const,
+      timestamp: '5分前',
+      read: false
+    },
+    {
+      id: '2',
+      title: '出品が閲覧されました',
+      message: 'リザードンEXが3回閲覧されました',
+      type: 'success' as const,
+      timestamp: '1時間前',
+      read: false
+    }
+  ]
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -42,18 +67,41 @@ export default function Header() {
 
           {/* Authentication Buttons */}
           <div className="flex items-center space-x-4">
-            <Link 
-              href="/auth/signin" 
-              className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
-            >
-              ログイン
-            </Link>
-            <Link 
-              href="/auth/signup" 
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium transition-colors shadow-sm hover:shadow-md"
-            >
-              新規登録
-            </Link>
+            {session ? (
+              <>
+                <NotificationCenter notifications={notifications} />
+                <Link 
+                  href="/dashboard" 
+                  className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
+                >
+                  ダッシュボード
+                </Link>
+                <span className="text-gray-700 font-medium">
+                  {session.user?.name || session.user?.email}
+                </span>
+                <button
+                  onClick={() => signOut()}
+                  className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 font-medium transition-colors shadow-sm hover:shadow-md"
+                >
+                  ログアウト
+                </button>
+              </>
+            ) : (
+              <>
+                <Link 
+                  href="/auth/signin" 
+                  className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
+                >
+                  ログイン
+                </Link>
+                <Link 
+                  href="/auth/signup" 
+                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium transition-colors shadow-sm hover:shadow-md"
+                >
+                  新規登録
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button (TODO: Implement mobile menu) */}

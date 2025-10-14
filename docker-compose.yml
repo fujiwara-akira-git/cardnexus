@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  cardnexus-db:
+    image: postgres:15
+    container_name: cardnexus-postgres
+    environment:
+      POSTGRES_DB: cardnexus
+      POSTGRES_USER: cardnexus_user
+      POSTGRES_PASSWORD: cardnexus_password
+    ports:
+      - "5433:5432"  # 既存のPostgreSQLと競合しないよう5433ポートを使用
+    volumes:
+      - cardnexus_db_data:/var/lib/postgresql/data
+    networks:
+      - cardnexus_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cardnexus_user -d cardnexus"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  cardnexus_db_data:
+
+networks:
+  cardnexus_network:
+    driver: bridge

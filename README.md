@@ -55,13 +55,109 @@ cardnexus/
 
 - Node.js 18.x 以上
 - npm または yarn
-- PostgreSQL データベース
+- Docker & Docker Compose（推奨）
+- PostgreSQL（Dockerを使用しない場合）
+
+## 🗄️ ローカルデータベース構築
+
+### 方法1: Docker Compose（推奨）
+
+Card Nexus専用のPostgreSQLを簡単にセットアップできます。
+
+1. **Dockerがインストールされていることを確認**
+   ```bash
+   docker --version
+   docker-compose --version
+   ```
+
+2. **PostgreSQLコンテナの起動**
+   ```bash
+   # プロジェクトルートで実行
+   docker-compose up -d
+   
+   # コンテナの状態確認
+   docker ps | grep cardnexus
+   ```
+
+3. **データベース接続の確認**
+   ```bash
+   # コンテナ内のPostgreSQLに接続してテスト
+   docker exec -it cardnexus-postgres psql -U cardnexus_user -d cardnexus -c "\l"
+   ```
+
+#### Docker設定詳細
+
+**使用ポート**: `5433`（既存PostgreSQLと競合回避）  
+**データベース名**: `cardnexus`  
+**ユーザー名**: `cardnexus_user`  
+**パスワード**: `cardnexus_password`  
+**データ永続化**: `cardnexus_cardnexus_db_data` Dockerボリューム
+
+#### Dockerコンテナ管理コマンド
+
+```bash
+# コンテナ起動
+docker-compose up -d
+
+# コンテナ停止
+docker-compose down
+
+# データベースログ確認
+docker logs cardnexus-postgres
+
+# コンテナ内でSQL実行
+docker exec -it cardnexus-postgres psql -U cardnexus_user -d cardnexus
+
+# データベース完全リセット（注意：全データ削除）
+docker-compose down -v
+docker-compose up -d
+```
+
+### 方法2: ローカルPostgreSQL
+
+既存のPostgreSQLを使用する場合の手順です。
+
+1. **PostgreSQL 15のインストール**
+   ```bash
+   # macOS (Homebrew)
+   brew install postgresql@15
+   brew services start postgresql@15
+   
+   # Ubuntu/Debian
+   sudo apt-get install postgresql-15 postgresql-client-15
+   sudo systemctl start postgresql
+   
+   # Windows
+   # https://www.postgresql.org/download/windows/ からダウンロード
+   ```
+
+2. **データベースとユーザーの作成**
+   ```sql
+   -- PostgreSQLに管理者でログイン
+   sudo -u postgres psql
+   
+   -- Card Nexus用データベースの作成
+   CREATE DATABASE cardnexus;
+   CREATE USER cardnexus_user WITH PASSWORD 'cardnexus_password';
+   GRANT ALL PRIVILEGES ON DATABASE cardnexus TO cardnexus_user;
+   
+   -- 接続テスト
+   \c cardnexus cardnexus_user
+   \q
+   ```
+
+3. **接続確認**
+   ```bash
+   psql -h localhost -U cardnexus_user -d cardnexus -c "SELECT version();"
+   ```
+
+## 📋 プロジェクトセットアップ手順
 
 ### インストール手順
 
 1. **リポジトリのクローン**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/fujiwara-akira-git/cardnexux.git
    cd cardnexus
    ```
 
@@ -72,28 +168,127 @@ cardnexus/
 
 3. **環境変数の設定**
    
-   `.env`ファイルを編集し、データベース接続情報を設定:
+   `.env.local`ファイルを作成し、以下の内容を設定:
    ```env
-   DATABASE_URL="your-postgresql-connection-string"
-   NEXTAUTH_URL="http://localhost:3000"
-   NEXTAUTH_SECRET="your-secret-key"
-   ```
-
-4. **データベースのセットアップ**
-   ```bash
-   # Prismaクライアント生成
-   npx prisma generate
+   # Database（Docker使用時）
+   DATABASE_URL="postgresql://cardnexus_user:cardnexus_password@localhost:5433/cardnexus?schema=public"
    
-   # データベースマイグレーション
-   npx prisma migrate dev --name init
+   # NextAuth.js
+   NEXTAUTH_URL="http://localhost:3001"
+   NEXTAUTH_SECRET="your-super-secret-key-change-this-in-production"
+   
+   # OAuth Providers（オプション）
+   GOOGLE_CLIENT_ID="your-google-client-id"
+   GOOGLE_CLIENT_SECRET="your-google-client-secret"
+   DISCORD_CLIENT_ID="your-discord-client-id"
+   DISCORD_CLIENT_SECRET="your-discord-client-secret"
    ```
 
-5. **開発サーバーの起動**
+   > **注意**: ローカルPostgreSQLを使用する場合は、ポートを`5432`に変更してください
+
+4. **Prismaクライアント生成**
+   ```bash
+   npx prisma generate
+   ```
+
+5. **データベースマイグレーション**
+   ```bash
+   # テーブル作成
+   npx prisma migrate dev --name init
+   
+   # マイグレーション状態の確認
+   npx prisma migrate status
+   ```
+
+6. **開発サーバーの起動**
    ```bash
    npm run dev
    ```
 
-   ブラウザで `http://localhost:3000` にアクセス
+   ブラウザで `http://localhost:3001` にアクセス
+
+### 🔧 データベース管理
+
+#### Prisma Studio（データベースGUI）
+
+データベースの内容を視覚的に確認・編集できます：
+
+```bash
+# Prisma Studio起動
+npx prisma studio
+```
+
+`http://localhost:5555` でGUIにアクセス可能
+
+#### 開発時のよくある操作
+
+```bash
+# スキーマ変更後のマイグレーション
+npx prisma migrate dev --name add_new_feature
+
+# データベースリセット（開発時のみ）
+npx prisma migrate reset
+
+# データベースの状態確認
+npx prisma migrate status
+
+# 本番環境用マイグレーション適用
+npx prisma migrate deploy
+```
+
+### 🔍 トラブルシューティング
+
+#### データベース接続エラー
+
+1. **Dockerコンテナが起動しているか確認**
+   ```bash
+   docker ps | grep cardnexus-postgres
+   ```
+
+2. **接続情報の確認**
+   ```bash
+   # 環境変数の確認
+   echo $DATABASE_URL
+   
+   # 手動接続テスト
+   psql "postgresql://cardnexus_user:cardnexus_password@localhost:5433/cardnexus"
+   ```
+
+3. **ポート競合の確認**
+   ```bash
+   # ポート使用状況確認
+   lsof -i :5433
+   netstat -an | grep 5433
+   ```
+
+#### Prismaエラー
+
+1. **クライアント再生成**
+   ```bash
+   rm -rf node_modules/.prisma
+   npx prisma generate
+   ```
+
+2. **マイグレーション状態の確認**
+   ```bash
+   npx prisma migrate status
+   npx prisma db push  # 強制同期（開発時のみ）
+   ```
+
+### 📊 データベーススキーマ
+
+Card Nexusでは以下のテーブル構造を使用しています：
+
+- **User** - ユーザー情報
+- **Card** - カード情報（ポケモンカード等）
+- **Listing** - 売買出品情報
+- **Transaction** - 取引履歴
+- **Message** - ユーザー間メッセージ
+- **Review** - ユーザー評価・レビュー
+- **Price** - カード価格履歴
+- **Deck** - デッキ構築情報
+
+詳細なスキーマは `prisma/schema.prisma` を参照してください。
 
 ## 📝 開発コマンド
 
@@ -119,6 +314,13 @@ npx prisma migrate dev
 # Prisma Studio（データベースビューア）
 npx prisma studio
 ```
+
+## 📚 詳細ドキュメント
+
+- **[データベース構築ガイド](docs/database-setup.md)** - PostgreSQL環境の詳細な構築手順
+- **[クイックリファレンス](docs/quick-reference.md)** - 開発時によく使うコマンド集
+- **[API仕様書](docs/api-specification.md)** - REST API エンドポイントの詳細
+- **[開発計画](docs/development.md)** - プロジェクトの進捗とマイルストーン
 
 ## 🎨 コード品質
 
