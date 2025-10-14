@@ -1,0 +1,207 @@
+// Card Nexus - Prisma Schema File
+// カードゲーム情報交換・取引プラットフォームのデータベース設計
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ユーザー情報を管理するテーブル
+model User {
+  id              String   @id @default(cuid())
+  username        String   @unique
+  email           String   @unique
+  passwordHash    String?  // NextAuth使用時はnull許可
+  profileImageUrl String?
+  bio             String?
+  rating          Float    @default(0.0) // 評価平均（0.0～5.0）
+  ratingCount     Int      @default(0)   // 評価件数
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // リレーション
+  listings         Listing[]
+  buyerTransactions  Transaction[] @relation("BuyerTransactions")
+  sellerTransactions Transaction[] @relation("SellerTransactions")
+  sentMessages     Message[]     @relation("SentMessages")
+  receivedMessages Message[]  @relation("ReceivedMessages")
+  reviews       Review[]      @relation("ReviewedUsers")
+  givenReviews  Review[]      @relation("ReviewGivers")
+  decks         Deck[]
+
+  @@map("users")
+}
+
+// カードの基本情報を管理するテーブル
+model Card {
+  id         String   @id @default(cuid())
+  name       String
+  gameTitle  String   // ポケモンカード、遊戯王など
+  imageUrl   String?
+  rarity     String?
+  effectText String?  @db.Text
+  cardNumber String?  // カード番号
+  expansion  String?  // 拡張パック名
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // リレーション
+  listings  Listing[]
+  prices    Price[]
+  deckCards DeckCard[]
+
+  @@map("cards")
+}
+
+// カードの価格情報を時系列で管理するテーブル
+model Price {
+  id         String   @id @default(cuid())
+  cardId     String
+  source     String   // mercari, magi, cardshop等
+  price      Int      // 価格（円）
+  condition  String?  // カードの状態
+  recordedAt DateTime @default(now())
+
+  // リレーション
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@map("prices")
+}
+
+// 出品情報を管理するテーブル
+model Listing {
+  id          String      @id @default(cuid())
+  userId      String
+  cardId      String
+  listingType ListingType // SELL, BUY, TRADE
+  price       Int?        // 価格（売りの場合）
+  condition   String?     // カードの状態
+  description String?     @db.Text
+  status      ListingStatus @default(ACTIVE)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // リレーション
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  card         Card          @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@map("listings")
+}
+
+// 取引履歴を管理するテーブル
+model Transaction {
+  id          String            @id @default(cuid())
+  listingId   String
+  buyerId     String
+  sellerId    String
+  price       Int
+  status      TransactionStatus @default(PENDING)
+  completedAt DateTime?
+  createdAt   DateTime          @default(now())
+
+  // リレーション
+  listing Listing @relation(fields: [listingId], references: [id])
+  buyer   User    @relation("BuyerTransactions", fields: [buyerId], references: [id])
+  seller  User    @relation("SellerTransactions", fields: [sellerId], references: [id])
+  review  Review?
+
+  @@map("transactions")
+}
+
+// ユーザー間のメッセージを管理するテーブル
+model Message {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  content    String   @db.Text
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  // リレーション
+  sender   User @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+// ユーザー評価を管理するテーブル
+model Review {
+  id            String  @id @default(cuid())
+  transactionId String  @unique
+  reviewerId    String
+  revieweeId    String
+  rating        Int     // 1-5の評価
+  comment       String? @db.Text
+  createdAt     DateTime @default(now())
+
+  // リレーション
+  transaction Transaction @relation(fields: [transactionId], references: [id])
+  reviewer    User        @relation("ReviewGivers", fields: [reviewerId], references: [id])
+  reviewee    User        @relation("ReviewedUsers", fields: [revieweeId], references: [id])
+
+  @@map("reviews")
+}
+
+// デッキ情報を管理するテーブル
+model Deck {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String?  @db.Text
+  gameTitle   String
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // リレーション
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deckCards DeckCard[]
+
+  @@map("decks")
+}
+
+// デッキとカードの中間テーブル
+model DeckCard {
+  id       String @id @default(cuid())
+  deckId   String
+  cardId   String
+  quantity Int    @default(1)
+
+  // リレーション
+  deck Deck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  // 同じデッキに同じカードは重複不可
+  @@unique([deckId, cardId])
+  @@map("deck_cards")
+}
+
+// Enum定義
+enum ListingType {
+  SELL  // 売り
+  BUY   // 買い
+  TRADE // 交換
+
+  @@map("listing_type")
+}
+
+enum ListingStatus {
+  ACTIVE    // 募集中
+  COMPLETED // 取引完了
+  CANCELLED // キャンセル
+
+  @@map("listing_status")
+}
+
+enum TransactionStatus {
+  PENDING   // 取引中
+  COMPLETED // 完了
+  CANCELLED // キャンセル
+
+  @@map("transaction_status")
+}
