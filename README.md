@@ -361,6 +361,8 @@ npx prisma studio
 
 ## 📚 詳細ドキュメント
 
+- **[Neonデータベース設定](docs/neon-database-setup.md)** - Neonデータベースの詳細な設定手順
+- **[Neon環境変数設定](docs/neon-env-vars.md)** - Vercel用環境変数の設定方法
 - **[データベース構築ガイド](docs/database-setup.md)** - PostgreSQL環境の詳細な構築手順
 - **[クイックリファレンス](docs/quick-reference.md)** - 開発時によく使うコマンド集
 - **[API仕様書](docs/api-specification.md)** - REST API エンドポイントの詳細
@@ -463,7 +465,8 @@ vercel --prod
 Vercel Dashboard で以下の環境変数を設定してください：
 
 ```env
-DATABASE_URL="postgresql://username:password@host:port/database"
+# Neon Database
+DATABASE_URL="postgresql://[user]:[password]@[host]/[database]?sslmode=require"
 NEXTAUTH_URL="https://your-app.vercel.app"
 NEXTAUTH_SECRET="your-secret-key-here"
 GOOGLE_CLIENT_ID="your-google-client-id"
@@ -472,11 +475,17 @@ DISCORD_CLIENT_ID="your-discord-client-id"
 DISCORD_CLIENT_SECRET="your-discord-client-secret"
 ```
 
-### 5. データベースプロバイダー
+### 5. Neonデータベース設定
 
-以下のサービスでPostgreSQLデータベースを作成してください：
+Card NexusではNeonデータベースを使用します：
 
-- **Neon** (推奨): https://neon.tech/
+1. **[Neon](https://neon.tech/)** にアクセスしアカウントを作成
+2. 新しいプロジェクトを作成: `cardnexus-production`  
+3. 接続文字列をコピー
+4. Vercel環境変数の `DATABASE_URL` に設定
+5. 詳細な手順は `docs/neon-database-setup.md` を参照
+
+**その他のオプション**:
 - **Supabase**: https://supabase.com/
 - **PlanetScale**: https://planetscale.com/
 - **Railway**: https://railway.app/
