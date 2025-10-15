@@ -438,7 +438,64 @@ chore: ビルドプロセス・補助ツール修正
 
 このプロジェクトは MIT ライセンス の下で公開されています。
 
-## 📞 サポート
+## � Vercelデプロイ手順
+
+### 1. Vercel CLIのインストール
+
+```bash
+npm install -g vercel
+```
+
+### 2. Vercelにログイン
+
+```bash
+vercel login
+```
+
+### 3. プロジェクトをVercelにリンク
+
+```bash
+vercel --prod
+```
+
+### 4. 環境変数の設定
+
+Vercel Dashboard で以下の環境変数を設定してください：
+
+```env
+DATABASE_URL="postgresql://username:password@host:port/database"
+NEXTAUTH_URL="https://your-app.vercel.app"
+NEXTAUTH_SECRET="your-secret-key-here"
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+DISCORD_CLIENT_ID="your-discord-client-id"  
+DISCORD_CLIENT_SECRET="your-discord-client-secret"
+```
+
+### 5. データベースプロバイダー
+
+以下のサービスでPostgreSQLデータベースを作成してください：
+
+- **Neon** (推奨): https://neon.tech/
+- **Supabase**: https://supabase.com/
+- **PlanetScale**: https://planetscale.com/
+- **Railway**: https://railway.app/
+
+### 6. 自動デプロイ
+
+GitHubにプッシュすると自動的にデプロイされます：
+
+```bash
+git add .
+git commit -m "feat: vercel deployment setup"
+git push origin main
+```
+
+### 7. ドメイン設定
+
+Vercel Dashboard でカスタムドメインを設定できます。
+
+## �📞 サポート
 
 問題や質問がある場合は、[GitHub Issues](./issues) でお知らせください。
 
