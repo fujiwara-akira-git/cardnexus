@@ -32,6 +32,7 @@ model User {
   reviews       Review[]      @relation("ReviewedUsers")
   givenReviews  Review[]      @relation("ReviewGivers")
   decks         Deck[]
+  deckLikes     DeckLike[]    @relation("DeckLikes")
   
   // 掲示板関連
   posts         Post[]
@@ -161,13 +162,19 @@ model Deck {
   name        String
   description String?  @db.Text
   gameTitle   String
+  format      String?  // スタンダード、エクスパンデッドなど
   isPublic    Boolean  @default(false)
+  likeCount   Int      @default(0)
+  viewCount   Int      @default(0)
+  coverImageUrl String? // デッキのカバー画像
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   // リレーション
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   deckCards DeckCard[]
+  deckTags  DeckTag[]
+  deckLikes DeckLike[]
 
   @@map("decks")
 }
@@ -186,6 +193,35 @@ model DeckCard {
   // 同じデッキに同じカードは重複不可
   @@unique([deckId, cardId])
   @@map("deck_cards")
+}
+
+// デッキのタグを管理するテーブル
+model DeckTag {
+  id       String @id @default(cuid())
+  deckId   String
+  tagName  String
+  createdAt DateTime @default(now())
+
+  // リレーション
+  deck Deck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+
+  @@unique([deckId, tagName])
+  @@map("deck_tags")
+}
+
+// デッキのいいねを管理するテーブル
+model DeckLike {
+  id       String @id @default(cuid())
+  deckId   String
+  userId   String
+  createdAt DateTime @default(now())
+
+  // リレーション
+  deck Deck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  user User @relation("DeckLikes", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([deckId, userId])
+  @@map("deck_likes")
 }
 
 // Enum定義
