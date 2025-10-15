@@ -32,6 +32,12 @@ model User {
   reviews       Review[]      @relation("ReviewedUsers")
   givenReviews  Review[]      @relation("ReviewGivers")
   decks         Deck[]
+  
+  // 掲示板関連
+  posts         Post[]
+  comments      Comment[]     @relation("CommentAuthors")
+  postLikes     PostLike[]    @relation("PostLikes")
+  commentLikes  CommentLike[] @relation("CommentLikes")
 
   @@map("users")
 }
@@ -53,6 +59,7 @@ model Card {
   listings  Listing[]
   prices    Price[]
   deckCards DeckCard[]
+  posts     Post[]    @relation("PostCards")
 
   @@map("cards")
 }
@@ -204,4 +211,106 @@ enum TransactionStatus {
   CANCELLED // キャンセル
 
   @@map("transaction_status")
+}
+
+// 掲示板の投稿を管理するテーブル
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @db.Text
+  category  PostCategory
+  tags      String[] // 配列でタグを保存
+  viewCount Int      @default(0)
+  likeCount Int      @default(0)
+  isPinned  Boolean  @default(false) // ピン留め
+  isLocked  Boolean  @default(false) // 書き込み禁止
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // リレーション
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  // 関連するカード（任意）
+  cardId String?
+  card   Card?   @relation("PostCards", fields: [cardId], references: [id])
+
+  // コメント
+  comments Comment[]
+
+  // いいね
+  likes PostLike[]
+
+  @@map("posts")
+}
+
+// 掲示板のコメントを管理するテーブル
+model Comment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  likeCount Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // リレーション
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author   User   @relation("CommentAuthors", fields: [authorId], references: [id], onDelete: Cascade)
+
+  // 返信コメント（自己参照）
+  parentId String?
+  parent   Comment? @relation("CommentReplies", fields: [parentId], references: [id])
+  replies  Comment[] @relation("CommentReplies")
+
+  // いいね
+  likes CommentLike[]
+
+  @@map("comments")
+}
+
+// 投稿のいいねを管理するテーブル
+model PostLike {
+  id     String @id @default(cuid())
+  postId String
+  userId String
+  createdAt DateTime @default(now())
+
+  // リレーション
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation("PostLikes", fields: [userId], references: [id], onDelete: Cascade)
+
+  // 同じユーザーが同じ投稿を複数回いいねできないように
+  @@unique([postId, userId])
+  @@map("post_likes")
+}
+
+// コメントのいいねを管理するテーブル
+model CommentLike {
+  id        String @id @default(cuid())
+  commentId String
+  userId    String
+  createdAt DateTime @default(now())
+
+  // リレーション
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user    User    @relation("CommentLikes", fields: [userId], references: [id], onDelete: Cascade)
+
+  // 同じユーザーが同じコメントを複数回いいねできないように
+  @@unique([commentId, userId])
+  @@map("comment_likes")
+}
+
+// 掲示板のカテゴリ
+enum PostCategory {
+  GENERAL     // 雑談
+  QUESTION    // 質問
+  DECK        // デッキ相談
+  TRADE       // トレード
+  NEWS        // ニュース
+  STRATEGY    // 攻略・戦略
+  COLLECTION  // コレクション
+
+  @@map("post_category")
 }

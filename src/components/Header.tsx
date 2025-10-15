@@ -58,6 +58,12 @@ export default function Header() {
               出品・求購
             </Link>
             <Link 
+              href="/board" 
+              className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
+            >
+              掲示板
+            </Link>
+            <Link 
               href="/marketplace" 
               className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
             >
