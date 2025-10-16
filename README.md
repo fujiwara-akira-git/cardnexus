@@ -102,6 +102,32 @@ cardnexus/
 - Docker & Docker Compose（推奨）
 - PostgreSQL（Dockerを使用しない場合）
 
+## 🌐 本番環境（プロダクション）
+
+### 📱 **本番サイト**
+- **メインURL**: https://cardnexus.vercel.app
+- **デプロイ先**: Vercel Platform
+- **データベース**: Neon PostgreSQL
+- **最終デプロイ**: 2024年10月16日 11:32 JST
+- **ビルドステータス**: ✅ 成功
+- **機能確認**: ✅ 全機能動作確認済み
+
+### 🏗️ **本番インフラ構成**
+- **フロントエンド**: Next.js 15.5.5 (App Router)
+- **サーバーレス関数**: Vercel Edge Functions
+- **データベース**: Neon PostgreSQL (サーバーレス対応)
+- **認証**: NextAuth.js (Google/Discord OAuth)
+- **CDN**: Vercel Edge Network (グローバル配信)
+- **SSL**: 自動SSL証明書 (Let's Encrypt)
+
+### 🔐 **セキュリティ機能**
+- HTTPS強制 (HSTS有効)
+- NextAuth.js セキュアセッション
+- PostgreSQL SSL接続
+- CSRF保護
+- XSS保護
+- 環境変数暗号化
+
 ## 🗄️ ローカルデータベース構築
 
 ### 方法1: Docker Compose（推奨）
