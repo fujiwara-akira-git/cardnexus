@@ -50,13 +50,32 @@ model User {
 // カードの基本情報を管理するテーブル
 model Card {
   id         String   @id @default(cuid())
+  apiId      String?  @unique // Pokemon TCG API の ID
   name       String
+  nameJa     String?  // カード名（日本語）
   gameTitle  String   // ポケモンカード、遊戯王など
   imageUrl   String?
   rarity     String?
   effectText String?  @db.Text
+  effectTextJa String? @db.Text // 効果テキスト（日本語）
   cardNumber String?  // カード番号
   expansion  String?  // 拡張パック名
+  expansionJa String? // 拡張パック名（日本語）
+  
+  // ポケモンカード固有のフィールド
+  regulationMark String? // G, H, I などのレギュレーションマーク
+  cardType       String? // Pokémon, Trainer, Energy
+  cardTypeJa     String? // カード種類（日本語）
+  hp             Int?    // ポケモンのHP
+  types          String? // ポケモンのタイプ（複数の場合はカンマ区切り）
+  typesJa        String? // ポケモンのタイプ（日本語、複数の場合はカンマ区切り）
+  evolveFrom     String? // 進化元のポケモン
+  evolveFromJa   String? // 進化元のポケモン（日本語）
+  artist         String? // イラストレーター
+  subtypes       String? // サブタイプ（複数の場合はカンマ区切り）
+  subtypesJa     String? // サブタイプ（日本語、複数の場合はカンマ区切り）
+  releaseDate    String? // リリース日
+  
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

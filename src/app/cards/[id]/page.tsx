@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import Header from '@/components/Header'
@@ -14,12 +14,27 @@ import { PriceHistory } from '@/components/cards/PriceHistory'
 interface CardDetail {
   id: string
   name: string
+  nameJa?: string
   gameTitle: string
   cardNumber?: string
   expansion?: string
+  expansionJa?: string
   rarity?: string
   effectText?: string
+  effectTextJa?: string
   imageUrl?: string
+  regulationMark?: string
+  cardType?: string
+  cardTypeJa?: string
+  hp?: number
+  types?: string
+  typesJa?: string
+  evolveFrom?: string
+  evolveFromJa?: string
+  artist?: string
+  subtypes?: string
+  subtypesJa?: string
+  releaseDate?: string
   createdAt: string
   priceStats: {
     latest?: number
@@ -61,12 +76,15 @@ interface ActiveListing {
 export default function CardDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [card, setCard] = useState<CardDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'overview' | 'listings' | 'history'>('overview')
 
   const cardId = params.id as string
+  // URLから戻り先のURLを取得
+  const returnUrl = searchParams.get('returnUrl') || '/cards'
 
   useEffect(() => {
     if (!cardId) return
@@ -136,12 +154,12 @@ export default function CardDetailPage() {
             <h3 className="text-lg font-medium text-gray-900 mb-2">カードが見つかりません</h3>
             <p className="text-gray-600 mb-6">{error}</p>
             <div className="space-x-4">
-              <button
-                onClick={() => router.back()}
+              <Link
+                href={returnUrl}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
               >
                 戻る
-              </button>
+              </Link>
               <Link
                 href="/cards"
                 className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
@@ -161,6 +179,19 @@ export default function CardDetailPage() {
       <Header />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* 戻るボタン */}
+        <div className="mb-6">
+          <Link
+            href={returnUrl}
+            className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            検索結果に戻る
+          </Link>
+        </div>
+
         {/* パンくずナビ */}
         <nav className="mb-6" aria-label="Breadcrumb">
           <ol className="flex items-center space-x-2 text-sm">
@@ -218,8 +249,11 @@ export default function CardDetailPage() {
               <div className="space-y-4">
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                    {card.name}
+                    {card.nameJa || card.name}
                   </h1>
+                  {card.nameJa && card.name !== card.nameJa && (
+                    <p className="text-sm text-gray-500 mb-2">{card.name}</p>
+                  )}
                   <div className="flex items-center space-x-2">
                     <span className="text-gray-600">{card.gameTitle}</span>
                     {card.rarity && (
@@ -230,32 +264,78 @@ export default function CardDetailPage() {
                   </div>
                 </div>
 
-                {card.cardNumber && (
-                  <div className="border-t pt-4">
-                    <dl className="space-y-2">
+                <div className="border-t pt-4">
+                  <dl className="space-y-2">
+                    {card.cardNumber && (
                       <div className="flex justify-between">
                         <dt className="text-sm text-gray-600">カード番号:</dt>
                         <dd className="text-sm font-medium text-gray-900">{card.cardNumber}</dd>
                       </div>
-                      {card.expansion && (
-                        <div className="flex justify-between">
-                          <dt className="text-sm text-gray-600">拡張パック:</dt>
-                          <dd className="text-sm font-medium text-gray-900">{card.expansion}</dd>
-                        </div>
-                      )}
+                    )}
+                    {(card.expansionJa || card.expansion) && (
                       <div className="flex justify-between">
-                        <dt className="text-sm text-gray-600">登録日:</dt>
-                        <dd className="text-sm font-medium text-gray-900">{formatDate(card.createdAt)}</dd>
+                        <dt className="text-sm text-gray-600">拡張パック:</dt>
+                        <dd className="text-sm font-medium text-gray-900">{card.expansionJa || card.expansion}</dd>
                       </div>
-                    </dl>
-                  </div>
-                )}
+                    )}
+                    {card.regulationMark && (
+                      <div className="flex justify-between">
+                        <dt className="text-sm text-gray-600">レギュレーション:</dt>
+                        <dd className="text-sm font-medium text-gray-900">
+                          <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
+                            {card.regulationMark}
+                          </span>
+                        </dd>
+                      </div>
+                    )}
+                    {(card.cardTypeJa || card.cardType) && (
+                      <div className="flex justify-between">
+                        <dt className="text-sm text-gray-600">カード種類:</dt>
+                        <dd className="text-sm font-medium text-gray-900">{card.cardTypeJa || card.cardType}</dd>
+                      </div>
+                    )}
+                    {card.hp && (
+                      <div className="flex justify-between">
+                        <dt className="text-sm text-gray-600">HP:</dt>
+                        <dd className="text-sm font-medium text-red-600">{card.hp}</dd>
+                      </div>
+                    )}
+                    {(card.typesJa || card.types) && (
+                      <div className="flex justify-between">
+                        <dt className="text-sm text-gray-600">タイプ:</dt>
+                        <dd className="text-sm font-medium text-gray-900">{card.typesJa || card.types}</dd>
+                      </div>
+                    )}
+                    {(card.evolveFromJa || card.evolveFrom) && (
+                      <div className="flex justify-between">
+                        <dt className="text-sm text-gray-600">進化元:</dt>
+                        <dd className="text-sm font-medium text-gray-900">{card.evolveFromJa || card.evolveFrom}</dd>
+                      </div>
+                    )}
+                    {card.artist && (
+                      <div className="flex justify-between">
+                        <dt className="text-sm text-gray-600">イラストレーター:</dt>
+                        <dd className="text-sm font-medium text-gray-900">{card.artist}</dd>
+                      </div>
+                    )}
+                    {card.releaseDate && (
+                      <div className="flex justify-between">
+                        <dt className="text-sm text-gray-600">発売日:</dt>
+                        <dd className="text-sm font-medium text-gray-900">{card.releaseDate}</dd>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <dt className="text-sm text-gray-600">登録日:</dt>
+                      <dd className="text-sm font-medium text-gray-900">{formatDate(card.createdAt)}</dd>
+                    </div>
+                  </dl>
+                </div>
 
-                {card.effectText && (
+                {(card.effectTextJa || card.effectText) && (
                   <div className="border-t pt-4">
                     <h3 className="text-sm font-medium text-gray-900 mb-2">効果テキスト</h3>
-                    <p className="text-sm text-gray-700 leading-relaxed">
-                      {card.effectText}
+                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                      {card.effectTextJa || card.effectText}
                     </p>
                   </div>
                 )}
