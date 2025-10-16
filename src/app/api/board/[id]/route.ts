@@ -8,9 +8,10 @@ const prisma = new PrismaClient()
 // 投稿詳細取得
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params
     const { id } = params
 
     // 投稿詳細取得
@@ -171,9 +172,10 @@ export async function GET(
 // 投稿更新
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params
     const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -320,9 +322,10 @@ export async function PUT(
 // 投稿削除
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params
     const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json(

@@ -9,7 +9,7 @@ import {
   PlusIcon,
   MinusIcon,
   TrashIcon,
-  SaveIcon,
+  BookmarkIcon,
   EyeIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
@@ -263,7 +263,7 @@ export default function DeckBuilderPage() {
               disabled={saving || !deckName.trim() || deckCards.length === 0}
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              <SaveIcon className="h-4 w-4 mr-2" />
+              <BookmarkIcon className="h-4 w-4 mr-2" />
               {saving ? '保存中...' : 'デッキを保存'}
             </button>
           </div>

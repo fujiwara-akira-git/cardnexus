@@ -6,9 +6,10 @@ import { prisma } from '@/lib/prisma'
 // 個別デッキ取得
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params
     const deckId = params.id
 
     // デッキ取得（詳細情報含む）
@@ -180,9 +181,10 @@ export async function GET(
 // デッキ更新
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params
     const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -312,9 +314,10 @@ export async function PUT(
 // デッキ削除
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params
     const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json(

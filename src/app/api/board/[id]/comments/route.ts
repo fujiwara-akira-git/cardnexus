@@ -8,7 +8,7 @@ const prisma = new PrismaClient()
 // コメント投稿
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -25,6 +25,7 @@ export async function POST(
       )
     }
 
+    const params = await context.params
     const { id: postId } = params
     const body = await request.json()
     const { content, parentId } = body

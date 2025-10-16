@@ -1,18 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { signIn, getSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import Link from 'next/link'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
 
-interface SignInForm {
+interface SignInFormData {
   email: string
   password: string
 }
 
-export default function SignInPage() {
+function SignInForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -31,9 +31,9 @@ export default function SignInPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<SignInForm>()
+  } = useForm<SignInFormData>()
 
-  const onSubmit = async (data: SignInForm) => {
+  const onSubmit = async (data: SignInFormData) => {
     setIsLoading(true)
     setError(null)
 
@@ -233,5 +233,13 @@ export default function SignInPage() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="text-center">読み込み中...</div></div>}>
+      <SignInForm />
+    </Suspense>
   )
 }
