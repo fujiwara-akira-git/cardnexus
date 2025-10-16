@@ -1,0 +1,83 @@
+# GitHub Actions - Schema Validation Workflow
+name: 🔍 Database Schema Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'prisma/**'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'prisma/**'
+  workflow_dispatch:
+
+env:
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  NEON_DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+
+jobs:
+  validate-schema:
+    name: 🏗️ Validate Database Schema
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: cardnexus
+          POSTGRES_USER: cardnexus_user
+          POSTGRES_PASSWORD: cardnexus_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: 📥 Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: 📦 Install Dependencies
+      run: npm ci
+
+    - name: 🏗️ Setup Test Database
+      env:
+        DATABASE_URL: postgresql://cardnexus_user:cardnexus_password@localhost:5432/cardnexus?schema=public
+      run: |
+        npx prisma migrate deploy
+        npx prisma generate
+
+    - name: 🔍 Validate Local Schema
+      env:
+        DATABASE_URL: postgresql://cardnexus_user:cardnexus_password@localhost:5432/cardnexus?schema=public
+      run: |
+        echo "🏗️ Checking local test database schema..."
+        npx prisma migrate status
+
+    - name: 🌐 Validate Neon Schema (if available)
+      if: env.NEON_DATABASE_URL != ''
+      env:
+        DATABASE_URL: ${{ env.NEON_DATABASE_URL }}
+      run: |
+        echo "🌐 Checking Neon production database schema..."
+        npx prisma migrate status
+
+    - name: ✅ Schema Validation Summary
+      run: |
+        echo "🎉 All database schemas validated successfully!"
+        echo "✅ Local test schema: OK"
+        if [ -n "$NEON_DATABASE_URL" ]; then
+          echo "✅ Neon production schema: OK"
+        else
+          echo "⚠️ Neon validation skipped (no NEON_DATABASE_URL)"
+        fi

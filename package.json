@@ -4,11 +4,18 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "prisma generate && next build --turbopack",
+    "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "next lint",
     "postinstall": "prisma generate",
-    "vercel-build": "prisma generate && prisma migrate deploy && next build"
+    "vercel-build": "prisma generate && prisma migrate deploy && next build",
+    "db:status": "prisma migrate status",
+    "db:validate": "./scripts/validate-schema.sh",
+    "db:sync": "prisma db push && prisma migrate resolve --applied $(ls prisma/migrations | tail -1)",
+    "db:reset:local": "prisma migrate reset --force",
+    "db:reset:neon": "DATABASE_URL=\"$NEON_DATABASE_URL\" prisma migrate reset --force",
+    "pre-commit": "./scripts/pre-commit-hook.sh",
+    "deploy:validate": "npm run db:validate && npm run build"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
