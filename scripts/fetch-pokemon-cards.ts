@@ -11,10 +11,10 @@ import * as path from 'path';
 // Pokemon TCG API のベースURL（環境変数から取得）
 const API_BASE_URL = process.env.POKEMON_TCG_API_URL;
 const API_KEY = process.env.POKEMON_TCG_API_KEY; // APIキーは環境変数から取得
-const MAX_RETRIES = 10; // 最大リトライ回数を10回に調整（速度重視）
-const TIMEOUT = 120000; // タイムアウト: 120秒に延長（2分）
-const PAGE_SIZE = 100; // 1ページあたりの取得枚数を100枚に削減（安定性向上）
-const REQUEST_DELAY = 5000; // リクエスト間隔を5秒に設定（API負荷軽減）
+const MAX_RETRIES = 20; // 最大リトライ回数を20回に増加（超安定性重視）
+const TIMEOUT = 240000; // タイムアウト: 240秒に延長（4分）
+const PAGE_SIZE = 25; // 1ページあたりの取得枚数を25枚に削減（超安定性重視）
+const REQUEST_DELAY = 12000; // リクエスト間隔を12秒に設定（API負荷大幅軽減）
 
 interface PokemonCard {
   id: string;
@@ -122,7 +122,12 @@ async function fetchCardsByRegulation(regulation: string): Promise<PokemonCard[]
               page,
               pageSize: PAGE_SIZE, // 定数を使用（50枚）
             },
-            headers: API_KEY ? { 'X-Api-Key': API_KEY } : {},
+            headers: {
+              'User-Agent': 'Card Nexus Data Fetcher/1.0 (+https://cardnexus.vercel.app)',
+              'Accept': 'application/json',
+              'Accept-Encoding': 'gzip, deflate',
+              ...(API_KEY ? { 'X-Api-Key': API_KEY } : {})
+            },
             timeout: TIMEOUT, // タイムアウト設定（120秒）
           }
         );
@@ -130,7 +135,8 @@ async function fetchCardsByRegulation(regulation: string): Promise<PokemonCard[]
         const { data, page: currentPage, totalCount } = response.data;
         cards.push(...data);
 
-        console.log(`  ページ ${currentPage}: ${data.length}枚取得 (合計: ${cards.length}/${totalCount}枚)`);
+        const progressPercent = ((cards.length / totalCount) * 100).toFixed(1);
+        console.log(`  ページ ${currentPage}: ${data.length}枚取得 (合計: ${cards.length}/${totalCount}枚, ${progressPercent}%)`);
 
         hasMorePages = cards.length < totalCount;
         page++;
@@ -149,10 +155,10 @@ async function fetchCardsByRegulation(regulation: string): Promise<PokemonCard[]
           console.error(`  エラー (試行 ${retryCount}/${MAX_RETRIES}): ${errorMessage} - ${error.message}`);
           
           if (error.response?.status === 429) {
-            console.log('  レート制限に達しました。10秒待機します...');
-            await new Promise(resolve => setTimeout(resolve, 10000));
+            console.log('  レート制限に達しました。30秒待機します...');
+            await new Promise(resolve => setTimeout(resolve, 30000));
           } else if (retryCount < MAX_RETRIES) {
-            const waitTime = retryCount * 5000; // リトライごとに待機時間を5秒ずつ増やす
+            const waitTime = Math.min(retryCount * 10000, 60000); // 指数バックオフ（最大60秒）
             console.log(`  ${waitTime / 1000}秒後にリトライします...`);
             await new Promise(resolve => setTimeout(resolve, waitTime));
           }

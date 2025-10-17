@@ -413,11 +413,11 @@ function CardsPageContent() {
                         src={card.imageUrl}
                         alt={card.name}
                         width={300}
-                        height={192}
-                        className="w-full h-48 object-cover rounded-t-lg"
+                        height={400}
+                        className="w-full h-96 object-contain rounded-t-lg bg-white"
                       />
                     ) : (
-                      <div className="w-full h-48 bg-gray-200 rounded-t-lg flex items-center justify-center">
+                      <div className="w-full h-96 bg-gray-200 rounded-t-lg flex items-center justify-center">
                         <span className="text-gray-400">画像なし</span>
                       </div>
                     )}
