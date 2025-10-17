@@ -240,13 +240,18 @@ docker-compose up -d
 
 3. **環境変数の設定**
    
-   `.env.local`ファイルを作成し、以下の内容を設定:
+   `.env`ファイルを作成（`.env.example`をコピー）:
+   ```bash
+   cp .env.example .env
+   ```
+   
+   `.env`ファイルを編集して、以下の内容を設定:
    ```env
    # Database（Docker使用時）
    DATABASE_URL="postgresql://cardnexus_user:cardnexus_password@localhost:5433/cardnexus?schema=public"
    
    # NextAuth.js
-   NEXTAUTH_URL="http://localhost:3001"
+   NEXTAUTH_URL="http://localhost:3000"
    NEXTAUTH_SECRET="your-super-secret-key-change-this-in-production"
    
    # OAuth Providers（オプション）
@@ -254,9 +259,22 @@ docker-compose up -d
    GOOGLE_CLIENT_SECRET="your-google-client-secret"
    DISCORD_CLIENT_ID="your-discord-client-id"
    DISCORD_CLIENT_SECRET="your-discord-client-secret"
+   
+   # Pokemon TCG API Key（オプション：レート制限を緩和）
+   POKEMON_TCG_API_KEY="your-api-key-here"
+   
+   # API エンドポイント設定（環境変数として定義）
+   POKEMON_TCG_API_URL="https://api.pokemontcg.io/v2"
+   YUGIOH_API_URL="https://db.ygoprodeck.com/api/v7"
    ```
 
-   > **注意**: ローカルPostgreSQLを使用する場合は、ポートを`5432`に変更してください
+   > **重要なセキュリティ事項**: 
+   > - `.env`ファイルは`.gitignore`に含まれており、GitHubにプッシュされません
+   > - **絶対に`.env`ファイルをコミットしないでください**
+   > - APIキーやシークレットキーは必ず環境変数で管理してください
+   > - ローカルPostgreSQLを使用する場合は、ポートを`5432`に変更してください
+   > - Pokemon TCG APIキーは https://dev.pokemontcg.io/ で取得できます
+   > - **APIエンドポイントURLは環境変数として定義されており、ハードコーディングされていません**
 
 4. **Prismaクライアント生成**
    ```bash
@@ -277,7 +295,34 @@ docker-compose up -d
    npm run dev
    ```
 
-   ブラウザで `http://localhost:3001` にアクセス
+   ブラウザで `http://localhost:3000` にアクセス
+
+### 🎴 カードデータのインポート
+
+Card Nexusは複数のカードゲームに対応しています。以下のコマンドでカードデータをインポートできます：
+
+#### ポケモンカード
+```bash
+# G、H、Iレギュレーションのカードデータを取得してインポート
+npm run setup:cards
+```
+
+#### 遊戯王カード
+```bash
+# 遊戯王カードデータを取得してインポート（約12,000枚）
+npm run setup:yugioh
+```
+
+#### すべてのカードデータ
+```bash
+# ポケモンと遊戯王のカードを一括でセットアップ
+npm run setup:all-cards
+```
+
+> **注意**: 
+> - カードデータのフェッチには時間がかかる場合があります（5-10分程度）
+> - Pokemon TCG APIは時々タイムアウトすることがあります。その場合は再実行してください
+> - フェッチされたデータは `data/` フォルダに保存されます（.gitignoreに含まれています）
 
 ### 🔧 データベース管理
 

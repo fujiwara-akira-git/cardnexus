@@ -41,3 +41,37 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# カードデータ（大容量のため除外）
+/data/
+
+# データベースバックアップ
+*.sql
+*.dump
+*.backup
+
+# ログファイル
+logs/
+*.log
+
+# 一時ファイル
+tmp/
+temp/
+*.tmp
+
+# IDEとエディタ設定
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini

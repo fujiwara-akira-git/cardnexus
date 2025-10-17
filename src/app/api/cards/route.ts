@@ -11,6 +11,8 @@ export async function GET(request: NextRequest) {
     const name = searchParams.get('name')
     const expansion = searchParams.get('expansion')
     const rarity = searchParams.get('rarity')
+    const regulationMark = searchParams.get('regulationMark') // G, H, I レギュレーション
+    const cardType = searchParams.get('cardType') // Pokémon, Trainer, Energy
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
 
@@ -20,6 +22,8 @@ export async function GET(request: NextRequest) {
     if (name) where.name = { contains: name, mode: 'insensitive' }
     if (expansion) where.expansion = { contains: expansion, mode: 'insensitive' }
     if (rarity) where.rarity = rarity
+    if (regulationMark) where.regulationMark = regulationMark
+    if (cardType) where.cardType = cardType
 
     // 総件数の取得
     const totalCount = await prisma.card.count({ where })
@@ -49,12 +53,27 @@ export async function GET(request: NextRequest) {
     const formattedCards = cards.map(card => ({
       id: card.id,
       name: card.name,
+      nameJa: card.nameJa,
       gameTitle: card.gameTitle,
       cardNumber: card.cardNumber,
       expansion: card.expansion,
+      expansionJa: card.expansionJa,
       rarity: card.rarity,
       effectText: card.effectText,
+      effectTextJa: card.effectTextJa,
       imageUrl: card.imageUrl,
+      regulationMark: card.regulationMark,
+      cardType: card.cardType,
+      cardTypeJa: card.cardTypeJa,
+      hp: card.hp,
+      types: card.types,
+      typesJa: card.typesJa,
+      evolveFrom: card.evolveFrom,
+      evolveFromJa: card.evolveFromJa,
+      artist: card.artist,
+      subtypes: card.subtypes,
+      subtypesJa: card.subtypesJa,
+      releaseDate: card.releaseDate,
       latestPrice: card.prices[0]?.price || null,
       activeListing: card._count.listings,
       createdAt: card.createdAt

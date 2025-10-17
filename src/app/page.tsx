@@ -10,6 +10,7 @@ import { GiCardExchange } from 'react-icons/gi'
 import Link from 'next/link'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import GameSelector from '@/components/GameSelector'
 
 export default function Home() {
   return (
@@ -66,6 +67,53 @@ export default function Home() {
               <div className="text-2xl sm:text-3xl font-bold text-purple-600 mb-2">1,000+</div>
               <div className="text-sm sm:text-base text-gray-600">成立取引数</div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Game Selector Section */}
+      <section className="py-16 sm:py-20 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
+              カードゲームを選択
+            </h2>
+            <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-4">
+              お気に入りのカードゲームを選んで、カード検索や取引を始めましょう
+            </p>
+          </div>
+
+          <div className="max-w-2xl mx-auto">
+            <GameSelector currentGame="ポケモンカード" />
+          </div>
+
+          {/* Quick Links */}
+          <div className="mt-10 sm:mt-12 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+            <Link
+              href="/cards?game=ポケモンカード"
+              className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-all duration-200 group"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-lg mb-1">ポケモンカード検索</h3>
+                  <p className="text-sm text-gray-600">G/H/Iレギュレーション対応</p>
+                </div>
+                <FaArrowRight className="text-yellow-500 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+
+            <Link
+              href="/cards?game=遊戯王"
+              className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-all duration-200 group"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-lg mb-1">遊戯王カード検索</h3>
+                  <p className="text-sm text-gray-600">12,000枚以上のカードデータ</p>
+                </div>
+                <FaArrowRight className="text-purple-500 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
           </div>
         </div>
       </section>
