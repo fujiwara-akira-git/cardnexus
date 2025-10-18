@@ -33,6 +33,17 @@ function transformCardData(card: any): any {
     artist: card.artist,
     subtypes: card.subtypes ? card.subtypes.join(', ') : null,
     releaseDate: null, // GitHubデータには含まれていない
+
+    // 追加: Json型フィールド
+    abilities: card.abilities || [],
+    attacks: card.attacks || [],
+    weaknesses: card.weaknesses || [],
+    resistances: card.resistances || [],
+    retreatCost: card.retreatCost || [],
+    legalities: card.legalities || {},
+    rules: card.rules || [],
+    source: card.source || null,
+    nationalPokedexNumbers: card.nationalPokedexNumbers || [],
   };
 }
 

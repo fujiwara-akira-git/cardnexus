@@ -64,6 +64,16 @@ model Card {
   subtypesJa     String?
   types          String?
   typesJa        String?
+  // --- JSON型フィールド追加 ---
+  attacks        Json?
+  abilities      Json?
+  weaknesses     Json?
+  resistances    Json?
+  retreatCost    Json?
+  rules          Json?
+  legalities     Json?
+  nationalPokedexNumbers Json?
+  // --- 既存 ---
   deckCards      DeckCard[]
   listings       Listing[]
   posts          Post[]     @relation("PostCards")
