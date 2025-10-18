@@ -458,8 +458,7 @@ function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
 
 const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-  const res = await fetch(`${baseUrl}/api/cards/${id}`, { cache: 'no-store' });
+  const res = await fetch(`/api/cards/${id}`, { cache: 'no-store' });
   if (!res.ok) {
     return (
       <div className="min-h-screen flex flex-col justify-center items-center text-red-600">
