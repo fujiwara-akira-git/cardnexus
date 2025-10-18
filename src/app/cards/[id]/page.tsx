@@ -69,18 +69,35 @@ const fieldLabels: Record<string, string> = {
 // JSONデータをテーブル形式でレンダリングする関数
 function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
   const renderArrayAsTable = (key: string, array: unknown[], label: string): React.ReactNode => {
-    if (!Array.isArray(array) || array.length === 0) return <></>;
+    if (!Array.isArray(array)) return null;
+
+    if (array.length === 0) {
+      return (
+        <div className="mb-6">
+          <h4 className="text-md font-medium mb-2">{label}</h4>
+          <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
+            <tbody>
+              <tr>
+                <td className="px-4 py-2 text-gray-500 text-center">
+                  なし
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      );
+    }
 
     // 最初のアイテムから列を決定
     const firstItem = array[0];
-    if (typeof firstItem !== 'object' || firstItem === null) return <></>;
+    if (typeof firstItem !== 'object' || firstItem === null) return null;
 
     const columns = Object.keys(firstItem as Record<string, unknown>);
 
     return (
       <div className="mb-6">
         <h4 className="text-md font-medium mb-2">{label}</h4>
-        <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
+  <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
           <thead className="bg-gray-50">
             <tr>
               {columns.map(col => (
@@ -125,10 +142,90 @@ function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
   const flattenData = (obj: Record<string, unknown>, prefix: string = ''): Array<{key: string, value: string | React.ReactNode, label: string}> => {
     const result: Array<{key: string, value: unknown, label: string}> = [];
 
+    // 優先的に処理するフィールド（弱点の直下に配置）
+    const priorityFields: string[] = [];
+
+    // 優先フィールドを最初に処理
+    priorityFields.forEach(key => {
+      if (obj.hasOwnProperty(key)) {
+        const value = obj[key];
+        const fullKey = prefix ? `${prefix}.${key}` : key;
+        const label = fieldLabels[key] || key;
+
+        // 空の値やnull/undefinedは表示しない
+        if (value === null || value === undefined) {
+          return;
+        }
+
+        if (typeof value === 'boolean') {
+          result.push({ key: fullKey, value: value ? 'はい' : 'いいえ', label });
+        } else if (typeof value === 'string' || typeof value === 'number') {
+          if (key === 'imageUrl') {
+            result.push({ key: fullKey, value: <a href={String(value)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">画像リンク</a>, label });
+          } else {
+            result.push({ key: fullKey, value: String(value), label });
+          }
+        } else if (Array.isArray(value)) {
+          if (value.length === 0) {
+            return; // 空の配列は表示しない
+          } else if (value.every(item => typeof item === 'string' || typeof item === 'number')) {
+            // シンプルな配列（文字列や数字のみ）
+            result.push({ key: fullKey, value: value.join(', '), label });
+          } else {
+            // 配列は特別に処理しない（renderJsonTableで処理）
+            return;
+          }
+        } else if (typeof value === 'object') {
+          const nestedObj = value as Record<string, unknown>;
+          const entries = Object.entries(nestedObj);
+          if (entries.length === 0) {
+            return; // 空のオブジェクトは表示しない
+          } else if (key === 'priceStats') {
+            // priceStats の場合はサブフィールドを個別に表示
+            entries.forEach(([subKey, subValue]) => {
+              const subFullKey = `${fullKey}.${subKey}`;
+              const subLabel = fieldLabels[subKey] || subKey;
+              if (subValue !== null && subValue !== undefined) {
+                if (typeof subValue === 'boolean') {
+                  result.push({ key: subFullKey, value: subValue ? 'はい' : 'いいえ', label: `${label} - ${subLabel}` });
+                } else if (typeof subValue === 'string' || typeof subValue === 'number') {
+                  result.push({ key: subFullKey, value: String(subValue), label: `${label} - ${subLabel}` });
+                } else if (Array.isArray(subValue)) {
+                  if (subValue.length > 0) {
+                    result.push({ key: subFullKey, value: subValue.join(', '), label: `${label} - ${subLabel}` });
+                  }
+                } else if (typeof subValue === 'object') {
+                  // さらにネストされた場合は簡略化
+                  const subEntries = Object.entries(subValue as Record<string, unknown>);
+                  if (subEntries.length > 0) {
+                    const summary = subEntries.map(([k, v]) => `${fieldLabels[k] || k}: ${String(v)}`).join(', ');
+                    result.push({ key: subFullKey, value: summary, label: `${label} - ${subLabel}` });
+                  }
+                }
+              }
+            });
+          } else {
+            // 他のオブジェクトの場合、主要フィールドのみを表示
+            const importantFields = ['name', 'price', 'type', 'value', 'username'];
+            const importantData = entries.filter(([k]) => importantFields.includes(k));
+            if (importantData.length > 0) {
+              const summary = importantData.map(([k, v]) => `${fieldLabels[k] || k}: ${String(v)}`).join(', ');
+              result.push({ key: fullKey, value: summary, label });
+            } else {
+              result.push({ key: fullKey, value: `${entries.length}個のフィールド`, label });
+            }
+          }
+        } else {
+          result.push({ key: fullKey, value: String(value), label });
+        }
+      }
+    });
+
+    // 残りのフィールドを処理
     Object.entries(obj).forEach(([key, value]) => {
-      // 除外するフィールド
-      const excludedFields = ['id', 'gameTitle', 'rarity', 'hp', 'types', 'regulationMark', 'artist'];
-      if (excludedFields.includes(key)) {
+      // 除外するフィールドまたは既に処理した優先フィールドはスキップ
+      const excludedFields = ['id', 'gameTitle', 'rarity', 'hp', 'types', 'regulationMark', 'artist', 'name', 'subtypes'];
+      if (excludedFields.includes(key) || priorityFields.includes(key)) {
         return;
       }
 
@@ -208,66 +305,152 @@ function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
 
   const flatData = flattenData(data);
 
-  // データを2列に分割
-  const midIndex = Math.ceil(flatData.length / 2);
-  const leftColumn = flatData.slice(0, midIndex);
-  const rightColumn = flatData.slice(midIndex);
+  // retreatCost, rulesを除外して一番下に残らないように
+  const bottomFields = ['nationalPokedexNumbers', 'imageUrl', 'createdAt', 'retreatCost', 'rules'];
+  const bottomData = flatData.filter(item => bottomFields.includes(item.key.split('.').pop() || ''));
+  const otherData = flatData.filter(item => !bottomFields.includes(item.key.split('.').pop() || ''));
+
+  const sortedFlatData = [...otherData, ...bottomData.filter(item => !['retreatCost', 'rules'].includes(item.key.split('.').pop() || ''))];
 
   return (
     <div>
       {/* 配列データをテーブル形式で表示 */}
-      {data.attacks && Array.isArray(data.attacks) ? renderArrayAsTable('attacks', data.attacks, 'ワザ') : null}
-      {data.weaknesses && Array.isArray(data.weaknesses) ? renderArrayAsTable('weaknesses', data.weaknesses, '弱点') : null}
+      {(() => {
+        // ワザ
+        if (data.attacks && (Array.isArray(data.attacks) || data.attacks === null || data.attacks === undefined)) {
+          return renderArrayAsTable('attacks', data.attacks || [], 'ワザ');
+        }
+        return null;
+      })()}
+      {(() => {
+        // 弱点
+        if (data.weaknesses && (Array.isArray(data.weaknesses) || data.weaknesses === null || data.weaknesses === undefined)) {
+          return renderArrayAsTable('weaknesses', data.weaknesses || [], '弱点');
+        }
+        return null;
+      })()}
+      {(() => {
+        // 抵抗力
+        if (Array.isArray(data.resistances) || data.resistances === null || data.resistances === undefined) {
+          return renderArrayAsTable('resistances', data.resistances || [], '抵抗力');
+        }
+        return null;
+      })()}
+      {(() => {
+        // 特性
+        if (Array.isArray(data.abilities) || data.abilities === null || data.abilities === undefined) {
+          return renderArrayAsTable('abilities', data.abilities || [], '特性');
+        }
+        return null;
+      })()}
+      {(() => {
+        // 逃げるコスト
+        let retreatArr: string[] = [];
+        if (Array.isArray(data.retreatCost)) {
+          retreatArr = data.retreatCost as string[];
+        } else if (typeof data.retreatCost === 'string' && data.retreatCost) {
+          retreatArr = data.retreatCost.split(',').map(v => v.trim());
+        }
+        if (retreatArr.length > 0) {
+          // テーブルの1行に各コストを列として表示
+          return (
+            <div className="mb-6">
+              <h4 className="text-md font-medium mb-2">にげるコスト</h4>
+              <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
+                <thead className="bg-gray-50">
+                  <tr>
+                    {retreatArr.map((_, idx) => (
+                      <th key={idx} className="px-4 py-2 text-left text-gray-700 font-medium border-b">コスト{idx+1}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    {retreatArr.map((cost, idx) => (
+                      <td key={idx} className="px-4 py-2 text-gray-900">{cost}</td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          );
+        } else {
+          return (
+            <div className="mb-6">
+              <h4 className="text-md font-medium mb-2">にげるコスト</h4>
+              <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
+                <tbody>
+                  <tr>
+                    <td className="px-4 py-2 text-gray-500 text-center">なし</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          );
+        }
+      })()}
+      {(() => {
+        // ルール
+        let rulesArr: string[] = [];
+        if (Array.isArray(data.rules)) {
+          rulesArr = data.rules as string[];
+        } else if (typeof data.rules === 'string' && data.rules) {
+          rulesArr = [data.rules];
+        }
+        if (rulesArr.length > 0) {
+          return (
+            <div className="mb-6">
+              <h4 className="text-md font-medium mb-2">ルール</h4>
+              <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
+                <thead className="bg-gray-50">
+                  <tr>
+                    {rulesArr.map((_, idx) => (
+                      <th key={idx} className="px-4 py-2 text-left text-gray-700 font-medium border-b">ルール{idx+1}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    {rulesArr.map((rule, idx) => (
+                      <td key={idx} className="px-4 py-2 text-gray-900">{rule}</td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          );
+        } else {
+          return (
+            <div className="mb-6">
+              <h4 className="text-md font-medium mb-2">ルール</h4>
+              <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
+                <tbody>
+                  <tr>
+                    <td className="px-4 py-2 text-gray-500 text-center">なし</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          );
+        }
+      })()}
 
-      {/* 他のデータを2列テーブルで表示 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* 左列 */}
-        <div>
-          <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-2 text-left text-gray-700 font-medium border-b">項目名</th>
-                <th className="px-4 py-2 text-left text-gray-700 font-medium border-b">値</th>
+      {/* データを1列テーブルで表示 */}
+      <div>
+  <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
+          <tbody>
+            {sortedFlatData.map(({ key, value, label }) => (
+              <tr key={key} className="border-b border-gray-100 hover:bg-gray-50">
+                <td className="px-4 py-0.5 font-medium text-gray-700 border-r border-gray-200">
+                  {label}
+                </td>
+                <td className="px-4 py-0.5 text-gray-900">
+                  {value}
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {leftColumn.map(({ key, value, label }) => (
-                <tr key={key} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-4 py-2 font-medium text-gray-700 border-r border-gray-200">
-                    {label}
-                  </td>
-                  <td className="px-4 py-2 text-gray-900">
-                    {value}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* 右列 */}
-        <div>
-          <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-2 text-left text-gray-700 font-medium border-b">項目名</th>
-                <th className="px-4 py-2 text-left text-gray-700 font-medium border-b">値</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rightColumn.map(({ key, value, label }) => (
-                <tr key={key} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-4 py-2 font-medium text-gray-700 border-r border-gray-200">
-                    {label}
-                  </td>
-                  <td className="px-4 py-2 text-gray-900">
-                    {value}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -325,7 +508,11 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
                 <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
                   <tbody>
                     <tr>
-                      <th className="text-left p-2 w-32 text-gray-600 bg-gray-50">ゲームタイトル</th>
+                      <th className="text-left p-2 w-32 text-gray-600 bg-gray-50">名前</th>
+                      <td className="p-2">{card.name || '不明'}</td>
+                    </tr>
+                    <tr>
+                      <th className="text-left p-2 text-gray-600 bg-gray-50">ゲームタイトル</th>
                       <td className="p-2">{card.gameTitle || '不明'}</td>
                     </tr>
                     {card.expansion && (
@@ -346,15 +533,27 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
                         <td className="p-2">{card.hp}</td>
                       </tr>
                     )}
-                    {card.types && Array.isArray(card.types) && card.types.length > 0 && (
+                                        {card.types && Array.isArray(card.types) && card.types.length > 0 && (
                       <tr>
                         <th className="text-left p-2 text-gray-600 bg-gray-50">タイプ</th>
                         <td className="p-2">{card.types.join(', ')}</td>
                       </tr>
                     )}
+                    {(card.subtypesJa || card.subtypes) && (
+                      <tr>
+                        <th className="text-left p-2 text-gray-600 bg-gray-50">サブタイプ</th>
+                        <td className="p-2">
+                          {Array.isArray(card.subtypesJa || card.subtypes) 
+                            ? (card.subtypesJa || card.subtypes).join(', ') 
+                            : typeof (card.subtypesJa || card.subtypes) === 'string' 
+                              ? (card.subtypesJa || card.subtypes).split(',').join(', ') 
+                              : (card.subtypesJa || card.subtypes)}
+                        </td>
+                      </tr>
+                    )}
                     {card.regulationMark && (
                       <tr>
-                        <th className="text-left p-2 text-gray-600 bg-gray-50">レギュレーションマーク</th>
+                        <th className="text-left p-2 text-gray-600 bg-gray-50">レギュレーション</th>
                         <td className="p-2">{card.regulationMark}</td>
                       </tr>
                     )}
