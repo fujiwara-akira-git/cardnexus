@@ -458,7 +458,14 @@ function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
 
 const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
-  const res = await fetch(`/api/cards/${id}`, { cache: 'no-store' });
+  // Vercelサーバーサイドでは絶対URLが必要
+  const baseUrl = typeof window === "undefined"
+    ? process.env.NEXT_PUBLIC_SITE_URL || "https://cardnexus.vercel.app"
+    : "";
+  const apiUrl = typeof window === "undefined"
+    ? `${baseUrl}/api/cards/${id}`
+    : `/api/cards/${id}`;
+  const res = await fetch(apiUrl, { cache: 'no-store' });
   if (!res.ok) {
     return (
       <div className="min-h-screen flex flex-col justify-center items-center text-red-600">
