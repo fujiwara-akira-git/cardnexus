@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
@@ -11,7 +10,6 @@ import {
   PlusIcon,
   FunnelIcon,
 } from '@heroicons/react/24/outline'
-import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid'
 
 interface User {
   id: string
@@ -77,7 +75,6 @@ const sortOptions = [
 ]
 
 export default function DecksPage() {
-  const { data: session } = useSession()
   const [decks, setDecks] = useState<Deck[]>([])
   const [pagination, setPagination] = useState<PaginationInfo | null>(null)
   const [loading, setLoading] = useState(true)

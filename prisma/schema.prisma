@@ -73,6 +73,7 @@ model Card {
   rules          Json?
   legalities     Json?
   nationalPokedexNumbers Json?
+  source String?
   // --- 既存 ---
   deckCards      DeckCard[]
   listings       Listing[]

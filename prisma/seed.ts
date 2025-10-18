@@ -1,120 +1,73 @@
 import { PrismaClient } from '@prisma/client'
+import fs from 'fs'
+import path from 'path'
 
 const prisma = new PrismaClient()
 
 async function main() {
   console.log('🌱 Seeding Card Database...')
 
-    // ポケモンカードのサンプルデータ（Cardスキーマに合わせて修正）
-  const cards = [
-    {
-      name: 'ピカチュウVMAX',
-      gameTitle: 'ポケモンカード',
-      cardNumber: 'SWP-001',
-      expansion: 'ソード＆シールド プロモ',
-      rarity: 'RRR',
-      effectText: 'このポケモンについているエネルギーの数×60ダメージ追加。',
-      imageUrl: '/images/cards/pikachu-vmax.jpg'
-    },
-    {
-      name: 'リザードンVSTAR',
-      gameTitle: 'ポケモンカード',
-      cardNumber: 'S12a-011',
-      expansion: 'VSTARユニバース',
-      rarity: 'RRR',
-      effectText: '相手のポケモン全員に、それぞれ30ダメージ。',
-      imageUrl: '/images/cards/charizard-vstar.jpg'
-    },
-    {
-      name: 'フシギバナVMAX',
-      gameTitle: 'ポケモンカード',
-      cardNumber: 'S4-002',
-      expansion: '仰天のボルテッカー',
-      rarity: 'RRR',
-      effectText: '自分の草ポケモン全員のHPを、それぞれ30回復する。',
-      imageUrl: '/images/cards/venusaur-vmax.jpg'
-    },
-    {
-      name: 'カメックスVMAX',
-      gameTitle: 'ポケモンカード',
-      cardNumber: 'S2-009',
-      expansion: '反逆クラッシュ',
-      rarity: 'RRR',
-      effectText: '相手のポケモン1匹に、60ダメージ。',
-      imageUrl: '/images/cards/blastoise-vmax.jpg'
-    },
-    {
-      name: 'ゲンガーVMAX',
-      gameTitle: 'ポケモンカード',
-      cardNumber: 'S4a-020',
-      expansion: 'ハイクラスパック シャイニースターV',
-      rarity: 'RRR',
-      effectText: 'このポケモンにも30ダメージ。',
-      imageUrl: '/images/cards/gengar-vmax.jpg'
-    },
-    {
-      name: 'ルカリオVSTAR',
-      gameTitle: 'ポケモンカード',
-      cardNumber: 'S9-048',
-      expansion: 'スターバース',
-      rarity: 'RRR',
-      effectText: '相手のベンチポケモンを2匹まで選び、それぞれに20ダメージ。',
-      imageUrl: '/images/cards/lucario-vstar.jpg'
-    },
-    {
-      name: 'イーブイVMAX',
-      gameTitle: 'ポケモンカード',
-      cardNumber: 'S6a-069',
-      expansion: 'イーブイヒーローズ',
-      rarity: 'RRR',
-      effectText: '自分のベンチのポケモンの数×20ダメージ追加。',
-      imageUrl: '/images/cards/eevee-vmax.jpg'
-    },
-    {
-      name: 'アルセウスVSTAR',
-      gameTitle: 'ポケモンカード',
-      cardNumber: 'S9-123',
-      expansion: 'スターバース',
-      rarity: 'RRR',
-      effectText: '自分の山札から基本エネルギーを3枚まで選び、自分のポケモンに好きなようにつける。',
-      imageUrl: '/images/cards/arceus-vstar.jpg'
-    }
+  // --- サンプルカード挿入処理は不要なのでコメントアウト ---
+  // const cards = [ ... ]
+  // for (const cardData of cards) { ... }
+
+  // --- 3つのJSONファイルからカードデータを一括で取り込む ---
+  const jsonFiles = [
+    path.join(__dirname, '../data/pokemon-cards/regulation-G-github.json'),
+    path.join(__dirname, '../data/pokemon-cards/regulation-H-github.json'),
+    path.join(__dirname, '../data/pokemon-cards/regulation-I-github.json')
   ]
 
-  // カードデータの挿入
-  for (const cardData of cards) {
-    const card = await prisma.card.create({
-      data: cardData
-    })
-
-    // 価格履歴のサンプルデータ
-    const basePrice = Math.floor(Math.random() * 15000) + 3000 // 3000-18000円
-    const priceHistory = []
-
-    // 過去30日間の価格データを生成
-    for (let i = 30; i >= 0; i--) {
-      const date = new Date()
-      date.setDate(date.getDate() - i)
-      
-      // 価格に±20%の変動を追加
-      const variation = (Math.random() - 0.5) * 0.4 // -20%から+20%
-      const price = Math.floor(basePrice * (1 + variation))
-
-      priceHistory.push({
-        cardId: card.id,
-        price: Math.max(price, 500), // 最低500円
-        recordedAt: date,
-        source: i % 3 === 0 ? 'mercari' : i % 3 === 1 ? 'yahoo_auction' : 'pokemon_center',
-        condition: Math.random() > 0.7 ? '美品' : Math.random() > 0.3 ? '良好' : 'やや傷あり'
-      })
+  for (const jsonPath of jsonFiles) {
+    if (fs.existsSync(jsonPath)) {
+      const jsonRaw = fs.readFileSync(jsonPath, 'utf-8')
+      const jsonCards = JSON.parse(jsonRaw)
+      for (const card of jsonCards) {
+        // Cardスキーマに合わせてフィールドをマッピング
+        // 既存フィールドにマッピング
+        const cardData = {
+          apiId: card.id || card.apiId,
+          name: card.name,
+          nameJa: card.nameJa || null,
+          gameTitle: card.gameTitle || 'ポケモンカード',
+          imageUrl: card.images?.large || card.imageUrl,
+          rarity: card.rarity,
+          effectText: card.effectText || null,
+          effectTextJa: card.effectTextJa || null,
+          cardNumber: card.number || card.cardNumber,
+          expansion: card.set?.name || card.expansion,
+          expansionJa: card.expansionJa || null,
+          regulationMark: card.regulationMark || card.regulation || null,
+          cardType: card.supertype || card.cardType || null,
+          cardTypeJa: card.cardTypeJa || null,
+          hp: card.hp ? parseInt(card.hp) : null,
+          types: Array.isArray(card.types) ? card.types.join(',') : card.types || null,
+          typesJa: Array.isArray(card.typesJa) ? card.typesJa.join(',') : card.typesJa || null,
+          evolveFrom: card.evolvesFrom || card.evolveFrom || null,
+          evolveFromJa: card.evolveFromJa || null,
+          artist: card.artist || null,
+          subtypes: Array.isArray(card.subtypes) ? card.subtypes.join(',') : card.subtypes || null,
+          subtypesJa: Array.isArray(card.subtypesJa) ? card.subtypesJa.join(',') : card.subtypesJa || null,
+          releaseDate: card.releaseDate || card.set?.releaseDate || null,
+          abilities: card.abilities?.length ? card.abilities : null,
+          attacks: card.attacks?.length ? card.attacks : null,
+          weaknesses: card.weaknesses?.length ? card.weaknesses : null,
+          resistances: card.resistances?.length ? card.resistances : null,
+          retreatCost: card.retreatCost?.length ? card.retreatCost : null,
+          legalities: card.legalities || card.legalFormats || null,
+          rules: card.rules || null,
+          source: card.source || null,
+          nationalPokedexNumbers: card.nationalPokedexNumbers || null,
+          extraJson: card // 未マッピング項目を丸ごと保存（schemaにJson型extraJson追加必要）
+        }
+        try {
+          await prisma.card.create({ data: cardData })
+          console.log(`✅ Imported card from JSON: ${card.name}`)
+        } catch (e) {
+          console.error(`❌ Failed to import card: ${card.name}`, e)
+        }
+      }
     }
-
-    // 価格履歴を一括挿入
-    await prisma.price.createMany({
-      data: priceHistory
-    })
-
-    console.log(`✅ Created card: ${card.name} with ${priceHistory.length} price entries`)
   }
 
   console.log('🎉 Seeding completed successfully!')

@@ -142,7 +142,7 @@ export default function DeckDetailPage() {
           text: deck?.description || '',
           url: window.location.href,
         })
-      } catch (error) {
+      } catch {
         // ユーザーがキャンセルした場合など
       }
     } else {
@@ -150,7 +150,7 @@ export default function DeckDetailPage() {
       try {
         await navigator.clipboard.writeText(window.location.href)
         alert('URLをクリップボードにコピーしました')
-      } catch (error) {
+      } catch {
         alert('URLのコピーに失敗しました')
       }
     }
@@ -163,25 +163,6 @@ export default function DeckDetailPage() {
       month: 'long',
       day: 'numeric',
     })
-  }
-
-  const formatRelativeTime = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-    const diffDays = Math.floor(diffHours / 24)
-
-    if (diffHours < 1) {
-      const diffMinutes = Math.floor(diffMs / (1000 * 60))
-      return `${diffMinutes}分前`
-    } else if (diffHours < 24) {
-      return `${diffHours}時間前`
-    } else if (diffDays < 7) {
-      return `${diffDays}日前`
-    } else {
-      return date.toLocaleDateString('ja-JP')
-    }
   }
 
   if (loading) {

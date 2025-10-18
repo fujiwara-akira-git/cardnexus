@@ -1,23 +1,23 @@
+
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
 // カード詳細情報の取得
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function GET(request: NextRequest, context: any) {
   try {
-    const { id: cardId } = await params
+    const { id: cardId } = await context.params
 
     // カード詳細の取得（価格履歴、アクティブな出品も含む）
+    // extraJsonも取得するためselectで全フィールド取得
     const card = await prisma.card.findUnique({
       where: { id: cardId },
       include: {
         prices: {
           orderBy: { recordedAt: 'desc' },
-          take: 30, // 最新30件の価格履歴
+          take: 30,
         },
         listings: {
           where: { status: 'ACTIVE' },
@@ -33,7 +33,7 @@ export async function GET(
             }
           },
           orderBy: [
-            { listingType: 'asc' }, // SELL, BUY, TRADE の順
+            { listingType: 'asc' },
             { createdAt: 'desc' }
           ]
         }
@@ -63,7 +63,7 @@ export async function GET(
     }
 
     // レスポンスデータの整形
-    const response = {
+  const response = {
       id: card.id,
       name: card.name,
       nameJa: card.nameJa,
@@ -88,6 +88,15 @@ export async function GET(
       subtypesJa: card.subtypesJa,
       releaseDate: card.releaseDate,
       createdAt: card.createdAt,
+      // --- 追加: JSONフィールド ---
+      abilities: card.abilities,
+      attacks: card.attacks,
+      weaknesses: card.weaknesses,
+      resistances: card.resistances,
+      retreatCost: card.retreatCost,
+      legalities: card.legalities,
+      rules: card.rules,
+      nationalPokedexNumbers: card.nationalPokedexNumbers,
       priceStats,
       priceHistory: card.prices.map(price => ({
         id: price.id,

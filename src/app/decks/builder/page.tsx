@@ -74,7 +74,6 @@ export default function DeckBuilderPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [searchResults, setSearchResults] = useState<SearchResult | null>(null)
   const [searchLoading, setSearchLoading] = useState(false)
-  const [searchPage, setSearchPage] = useState(1)
   
   // 表示モード
   const [viewMode, setViewMode] = useState<'build' | 'preview'>('build')
@@ -121,7 +120,6 @@ export default function DeckBuilderPage() {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (searchTerm.trim()) {
-        setSearchPage(1)
         searchCards(1)
       }
     }, 300)
