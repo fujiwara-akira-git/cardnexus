@@ -1,6 +1,3 @@
-// Card Nexus - Prisma Schema File
-// カードゲーム情報交換・取引プラットフォームのデータベース設計
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,121 +7,101 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ユーザー情報を管理するテーブル
 model User {
-  id              String   @id @default(cuid())
-  username        String   @unique
-  email           String   @unique
-  passwordHash    String?  // NextAuth使用時はnull許可
-  profileImageUrl String?
-  bio             String?
-  rating          Float    @default(0.0) // 評価平均（0.0～5.0）
-  ratingCount     Int      @default(0)   // 評価件数
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // リレーション
-  listings         Listing[]
+  id                 String        @id @default(cuid())
+  username           String        @unique
+  email              String        @unique
+  passwordHash       String?
+  profileImageUrl    String?
+  bio                String?
+  rating             Float         @default(0.0)
+  ratingCount        Int           @default(0)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  accounts           Account[]
+  commentLikes       CommentLike[] @relation("CommentLikes")
+  comments           Comment[]     @relation("CommentAuthors")
+  deckLikes          DeckLike[]    @relation("DeckLikes")
+  decks              Deck[]
+  listings           Listing[]
+  receivedMessages   Message[]     @relation("ReceivedMessages")
+  sentMessages       Message[]     @relation("SentMessages")
+  postLikes          PostLike[]    @relation("PostLikes")
+  posts              Post[]
+  reviews            Review[]      @relation("ReviewedUsers")
+  givenReviews       Review[]      @relation("ReviewGivers")
+  sessions           Session[]
   buyerTransactions  Transaction[] @relation("BuyerTransactions")
   sellerTransactions Transaction[] @relation("SellerTransactions")
-  sentMessages     Message[]     @relation("SentMessages")
-  receivedMessages Message[]  @relation("ReceivedMessages")
-  reviews       Review[]      @relation("ReviewedUsers")
-  givenReviews  Review[]      @relation("ReviewGivers")
-  decks         Deck[]
-  deckLikes     DeckLike[]    @relation("DeckLikes")
-  
-  // 掲示板関連
-  posts         Post[]
-  comments      Comment[]     @relation("CommentAuthors")
-  postLikes     PostLike[]    @relation("PostLikes")
-  commentLikes  CommentLike[] @relation("CommentLikes")
-
-  // NextAuth.js関連
-  accounts      Account[]
-  sessions      Session[]
 
   @@map("users")
 }
 
-// カードの基本情報を管理するテーブル
 model Card {
-  id         String   @id @default(cuid())
-  apiId      String?  @unique // Pokemon TCG API の ID
-  name       String
-  nameJa     String?  // カード名（日本語）
-  gameTitle  String   // ポケモンカード、遊戯王など
-  imageUrl   String?
-  rarity     String?
-  effectText String?  @db.Text
-  effectTextJa String? @db.Text // 効果テキスト（日本語）
-  cardNumber String?  // カード番号
-  expansion  String?  // 拡張パック名
-  expansionJa String? // 拡張パック名（日本語）
-  
-  // ポケモンカード固有のフィールド
-  regulationMark String? // G, H, I などのレギュレーションマーク
-  cardType       String? // Pokémon, Trainer, Energy
-  cardTypeJa     String? // カード種類（日本語）
-  hp             Int?    // ポケモンのHP
-  types          String? // ポケモンのタイプ（複数の場合はカンマ区切り）
-  typesJa        String? // ポケモンのタイプ（日本語、複数の場合はカンマ区切り）
-  evolveFrom     String? // 進化元のポケモン
-  evolveFromJa   String? // 進化元のポケモン（日本語）
-  artist         String? // イラストレーター
-  subtypes       String? // サブタイプ（複数の場合はカンマ区切り）
-  subtypesJa     String? // サブタイプ（日本語、複数の場合はカンマ区切り）
-  releaseDate    String? // リリース日
-  
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  // リレーション
-  listings  Listing[]
-  prices    Price[]
-  deckCards DeckCard[]
-  posts     Post[]    @relation("PostCards")
+  id             String     @id @default(cuid())
+  name           String
+  gameTitle      String
+  imageUrl       String?
+  rarity         String?
+  effectText     String?
+  cardNumber     String?
+  expansion      String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  apiId          String?    @unique
+  artist         String?
+  cardType       String?
+  cardTypeJa     String?
+  effectTextJa   String?
+  evolveFrom     String?
+  evolveFromJa   String?
+  expansionJa    String?
+  hp             Int?
+  nameJa         String?
+  regulationMark String?
+  releaseDate    String?
+  subtypes       String?
+  subtypesJa     String?
+  types          String?
+  typesJa        String?
+  deckCards      DeckCard[]
+  listings       Listing[]
+  posts          Post[]     @relation("PostCards")
+  prices         Price[]
 
   @@map("cards")
 }
 
-// カードの価格情報を時系列で管理するテーブル
 model Price {
   id         String   @id @default(cuid())
   cardId     String
-  source     String   // mercari, magi, cardshop等
-  price      Int      // 価格（円）
-  condition  String?  // カードの状態
+  source     String
+  price      Int
+  condition  String?
   recordedAt DateTime @default(now())
-
-  // リレーション
-  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  card       Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
 
   @@map("prices")
 }
 
-// 出品情報を管理するテーブル
 model Listing {
-  id          String      @id @default(cuid())
-  userId      String
-  cardId      String
-  listingType ListingType // SELL, BUY, TRADE
-  price       Int?        // 価格（売りの場合）
-  condition   String?     // カードの状態
-  description String?     @db.Text
-  status      ListingStatus @default(ACTIVE)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  // リレーション
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String        @id @default(cuid())
+  userId       String
+  cardId       String
+  listingType  ListingType
+  price        Int?
+  condition    String?
+  description  String?
+  status       ListingStatus @default(ACTIVE)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
   card         Card          @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
 
   @@map("listings")
 }
 
-// 取引履歴を管理するテーブル
 model Transaction {
   id          String            @id @default(cuid())
   listingId   String
@@ -134,262 +111,176 @@ model Transaction {
   status      TransactionStatus @default(PENDING)
   completedAt DateTime?
   createdAt   DateTime          @default(now())
-
-  // リレーション
-  listing Listing @relation(fields: [listingId], references: [id])
-  buyer   User    @relation("BuyerTransactions", fields: [buyerId], references: [id])
-  seller  User    @relation("SellerTransactions", fields: [sellerId], references: [id])
-  review  Review?
+  review      Review?
+  buyer       User              @relation("BuyerTransactions", fields: [buyerId], references: [id])
+  listing     Listing           @relation(fields: [listingId], references: [id])
+  seller      User              @relation("SellerTransactions", fields: [sellerId], references: [id])
 
   @@map("transactions")
 }
 
-// ユーザー間のメッセージを管理するテーブル
 model Message {
   id         String   @id @default(cuid())
   senderId   String
   receiverId String
-  content    String   @db.Text
+  content    String
   isRead     Boolean  @default(false)
   createdAt  DateTime @default(now())
-
-  // リレーション
-  sender   User @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@map("messages")
 }
 
-// ユーザー評価を管理するテーブル
 model Review {
-  id            String  @id @default(cuid())
-  transactionId String  @unique
+  id            String      @id @default(cuid())
+  transactionId String      @unique
   reviewerId    String
   revieweeId    String
-  rating        Int     // 1-5の評価
-  comment       String? @db.Text
-  createdAt     DateTime @default(now())
-
-  // リレーション
-  transaction Transaction @relation(fields: [transactionId], references: [id])
-  reviewer    User        @relation("ReviewGivers", fields: [reviewerId], references: [id])
-  reviewee    User        @relation("ReviewedUsers", fields: [revieweeId], references: [id])
+  rating        Int
+  comment       String?
+  createdAt     DateTime    @default(now())
+  reviewee      User        @relation("ReviewedUsers", fields: [revieweeId], references: [id])
+  reviewer      User        @relation("ReviewGivers", fields: [reviewerId], references: [id])
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
 
   @@map("reviews")
 }
 
-// デッキ情報を管理するテーブル
 model Deck {
-  id          String   @id @default(cuid())
-  userId      String
-  name        String
-  description String?  @db.Text
-  gameTitle   String
-  format      String?  // スタンダード、エクスパンデッドなど
-  isPublic    Boolean  @default(false)
-  likeCount   Int      @default(0)
-  viewCount   Int      @default(0)
-  coverImageUrl String? // デッキのカバー画像
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // リレーション
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  deckCards DeckCard[]
-  deckTags  DeckTag[]
-  deckLikes DeckLike[]
+  id            String     @id @default(cuid())
+  userId        String
+  name          String
+  description   String?
+  gameTitle     String
+  format        String?
+  isPublic      Boolean    @default(false)
+  likeCount     Int        @default(0)
+  viewCount     Int        @default(0)
+  coverImageUrl String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  deckCards     DeckCard[]
+  deckLikes     DeckLike[]
+  deckTags      DeckTag[]
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("decks")
 }
 
-// デッキとカードの中間テーブル
 model DeckCard {
   id       String @id @default(cuid())
   deckId   String
   cardId   String
   quantity Int    @default(1)
+  card     Card   @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  deck     Deck   @relation(fields: [deckId], references: [id], onDelete: Cascade)
 
-  // リレーション
-  deck Deck @relation(fields: [deckId], references: [id], onDelete: Cascade)
-  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
-
-  // 同じデッキに同じカードは重複不可
   @@unique([deckId, cardId])
   @@map("deck_cards")
 }
 
-// デッキのタグを管理するテーブル
 model DeckTag {
-  id       String @id @default(cuid())
-  deckId   String
-  tagName  String
+  id        String   @id @default(cuid())
+  deckId    String
+  tagName   String
   createdAt DateTime @default(now())
-
-  // リレーション
-  deck Deck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  deck      Deck     @relation(fields: [deckId], references: [id], onDelete: Cascade)
 
   @@unique([deckId, tagName])
   @@map("deck_tags")
 }
 
-// デッキのいいねを管理するテーブル
 model DeckLike {
-  id       String @id @default(cuid())
-  deckId   String
-  userId   String
+  id        String   @id @default(cuid())
+  deckId    String
+  userId    String
   createdAt DateTime @default(now())
-
-  // リレーション
-  deck Deck @relation(fields: [deckId], references: [id], onDelete: Cascade)
-  user User @relation("DeckLikes", fields: [userId], references: [id], onDelete: Cascade)
+  deck      Deck     @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  user      User     @relation("DeckLikes", fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([deckId, userId])
   @@map("deck_likes")
 }
 
-// Enum定義
-enum ListingType {
-  SELL  // 売り
-  BUY   // 買い
-  TRADE // 交換
-
-  @@map("listing_type")
-}
-
-enum ListingStatus {
-  ACTIVE    // 募集中
-  COMPLETED // 取引完了
-  CANCELLED // キャンセル
-
-  @@map("listing_status")
-}
-
-enum TransactionStatus {
-  PENDING   // 取引中
-  COMPLETED // 完了
-  CANCELLED // キャンセル
-
-  @@map("transaction_status")
-}
-
-// 掲示板の投稿を管理するテーブル
 model Post {
-  id        String   @id @default(cuid())
+  id        String       @id @default(cuid())
   title     String
-  content   String   @db.Text
+  content   String
   category  PostCategory
-  tags      String[] // 配列でタグを保存
-  viewCount Int      @default(0)
-  likeCount Int      @default(0)
-  isPinned  Boolean  @default(false) // ピン留め
-  isLocked  Boolean  @default(false) // 書き込み禁止
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // リレーション
-  authorId String
-  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
-  // 関連するカード（任意）
-  cardId String?
-  card   Card?   @relation("PostCards", fields: [cardId], references: [id])
-
-  // コメント
-  comments Comment[]
-
-  // いいね
-  likes PostLike[]
+  tags      String[]
+  viewCount Int          @default(0)
+  likeCount Int          @default(0)
+  isPinned  Boolean      @default(false)
+  isLocked  Boolean      @default(false)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  authorId  String
+  cardId    String?
+  comments  Comment[]
+  likes     PostLike[]
+  author    User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  card      Card?        @relation("PostCards", fields: [cardId], references: [id])
 
   @@map("posts")
 }
 
-// 掲示板のコメントを管理するテーブル
 model Comment {
-  id        String   @id @default(cuid())
-  content   String   @db.Text
-  likeCount Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // リレーション
-  postId String
-  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  authorId String
-  author   User   @relation("CommentAuthors", fields: [authorId], references: [id], onDelete: Cascade)
-
-  // 返信コメント（自己参照）
-  parentId String?
-  parent   Comment? @relation("CommentReplies", fields: [parentId], references: [id])
-  replies  Comment[] @relation("CommentReplies")
-
-  // いいね
-  likes CommentLike[]
+  id        String        @id @default(cuid())
+  content   String
+  likeCount Int           @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  postId    String
+  authorId  String
+  parentId  String?
+  likes     CommentLike[]
+  author    User          @relation("CommentAuthors", fields: [authorId], references: [id], onDelete: Cascade)
+  parent    Comment?      @relation("CommentReplies", fields: [parentId], references: [id])
+  replies   Comment[]     @relation("CommentReplies")
+  post      Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@map("comments")
 }
 
-// 投稿のいいねを管理するテーブル
 model PostLike {
-  id     String @id @default(cuid())
-  postId String
-  userId String
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
   createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation("PostLikes", fields: [userId], references: [id], onDelete: Cascade)
 
-  // リレーション
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user User @relation("PostLikes", fields: [userId], references: [id], onDelete: Cascade)
-
-  // 同じユーザーが同じ投稿を複数回いいねできないように
   @@unique([postId, userId])
   @@map("post_likes")
 }
 
-// コメントのいいねを管理するテーブル
 model CommentLike {
-  id        String @id @default(cuid())
+  id        String   @id @default(cuid())
   commentId String
   userId    String
   createdAt DateTime @default(now())
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User     @relation("CommentLikes", fields: [userId], references: [id], onDelete: Cascade)
 
-  // リレーション
-  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  user    User    @relation("CommentLikes", fields: [userId], references: [id], onDelete: Cascade)
-
-  // 同じユーザーが同じコメントを複数回いいねできないように
   @@unique([commentId, userId])
   @@map("comment_likes")
 }
 
-// 掲示板のカテゴリ
-enum PostCategory {
-  GENERAL     // 雑談
-  QUESTION    // 質問
-  DECK        // デッキ相談
-  TRADE       // トレード
-  NEWS        // ニュース
-  STRATEGY    // 攻略・戦略
-  COLLECTION  // コレクション
-
-  @@map("post_category")
-}
-
-// NextAuth.js のための必須モデル
 model Account {
   id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@map("accounts")
@@ -412,4 +303,40 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verificationtokens")
+}
+
+enum ListingType {
+  SELL
+  BUY
+  TRADE
+
+  @@map("listing_type")
+}
+
+enum ListingStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+
+  @@map("listing_status")
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+
+  @@map("transaction_status")
+}
+
+enum PostCategory {
+  GENERAL
+  QUESTION
+  DECK
+  TRADE
+  NEWS
+  STRATEGY
+  COLLECTION
+
+  @@map("post_category")
 }
