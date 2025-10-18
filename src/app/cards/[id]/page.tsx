@@ -460,7 +460,7 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
   // Vercelサーバーサイドでは絶対URLが必要
   const baseUrl = typeof window === "undefined"
-    ? process.env.NEXT_PUBLIC_SITE_URL || "https://cardnexus.vercel.app"
+    ? process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
     : "";
   const apiUrl = typeof window === "undefined"
     ? `${baseUrl}/api/cards/${id}`
