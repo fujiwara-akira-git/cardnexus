@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
     if (gameTitle === 'ポケモンカード') {
       normalizedGameTitle = 'Pokemon TCG'
     }
+    console.log('Original gameTitle:', gameTitle, 'Normalized:', normalizedGameTitle)
     
     if (normalizedGameTitle) where.gameTitle = { contains: normalizedGameTitle, mode: 'insensitive' }
     if (name) where.name = { contains: name, mode: 'insensitive' }
