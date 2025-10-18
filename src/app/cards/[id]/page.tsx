@@ -62,7 +62,6 @@ const fieldLabels: Record<string, string> = {
   username: 'ユーザー名',
   rating: '評価',
   reviewCount: 'レビュー数',
-  createdAt: '作成日時',
   expiresAt: '有効期限',
 };
 
@@ -139,8 +138,8 @@ function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
     );
   };
 
-  const flattenData = (obj: Record<string, unknown>, prefix: string = ''): Array<{key: string, value: string | React.ReactNode, label: string}> => {
-    const result: Array<{key: string, value: unknown, label: string}> = [];
+  const flattenData = (obj: Record<string, unknown>, prefix: string = ''): Array<{key: string, value: React.ReactNode, label: string}> => {
+    const result: Array<{key: string, value: React.ReactNode, label: string}> = [];
 
     // 優先的に処理するフィールド（弱点の直下に配置）
     const priorityFields: string[] = [];
