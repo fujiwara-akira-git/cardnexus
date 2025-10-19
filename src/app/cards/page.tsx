@@ -147,6 +147,7 @@ function CardsPageContent() {
 
       if (result.success) {
         console.log('Setting cards:', result.data.cards.length)
+        console.log('Setting pagination:', result.data.pagination)
         setCards(result.data.cards)
         setPagination(result.data.pagination)
       } else {
@@ -396,6 +397,7 @@ function CardsPageContent() {
               <p className="text-gray-600">
                 {pagination.totalCount}件のカードが見つかりました
               </p>
+              {console.log('Current pagination object:', pagination)}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

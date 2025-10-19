@@ -165,6 +165,7 @@ model Deck {
   description   String?
   gameTitle     String
   format        String?
+  types         String?    // デッキのタイプ（JSON配列を文字列化）
   isPublic      Boolean    @default(false)
   likeCount     Int        @default(0)
   viewCount     Int        @default(0)

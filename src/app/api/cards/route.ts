@@ -19,14 +19,10 @@ export async function GET(request: NextRequest) {
     // 検索条件の構築
     const where: Prisma.CardWhereInput = {}
     
-    // gameTitleの正規化
-    let normalizedGameTitle = gameTitle
-    if (gameTitle === 'ポケモンカード') {
-      normalizedGameTitle = 'Pokemon TCG'
-    }
-    console.log('Original gameTitle:', gameTitle, 'Normalized:', normalizedGameTitle)
+    // gameTitleの正規化（削除 - データベースの実際の値を使用）
+    console.log('gameTitle:', gameTitle)
     
-    if (normalizedGameTitle) where.gameTitle = { contains: normalizedGameTitle, mode: 'insensitive' }
+    if (gameTitle) where.gameTitle = { contains: gameTitle, mode: 'insensitive' }
     if (name) where.name = { contains: name, mode: 'insensitive' }
     if (expansion) where.expansion = { contains: expansion, mode: 'insensitive' }
     if (rarity) where.rarity = rarity
