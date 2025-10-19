@@ -94,7 +94,7 @@ export async function GET(request: NextRequest, context: any) {
       weaknesses: card.weaknesses,
       resistances: card.resistances,
       retreatCost: card.retreatCost,
-      legalities: card.legalities,
+      legalities: card.legalities ? Object.entries(card.legalities).map(([key, value]) => `${key}: ${value}`).join(', ') : null,
       rules: card.rules,
       nationalPokedexNumbers: card.nationalPokedexNumbers,
       priceStats,
