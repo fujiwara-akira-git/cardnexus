@@ -143,8 +143,10 @@ function CardsPageContent() {
     try {
       const response = await fetch(`/api/cards?${params.toString()}`)
       const result = await response.json()
+      console.log('API Response:', result)
 
       if (result.success) {
+        console.log('Setting cards:', result.data.cards.length)
         setCards(result.data.cards)
         setPagination(result.data.pagination)
       } else {
