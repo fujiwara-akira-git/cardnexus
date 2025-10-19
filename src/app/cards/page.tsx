@@ -397,7 +397,6 @@ function CardsPageContent() {
               <p className="text-gray-600">
                 {pagination.totalCount}件のカードが見つかりました
               </p>
-              {console.log('Current pagination object:', pagination)}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
