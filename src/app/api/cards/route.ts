@@ -84,7 +84,17 @@ export async function GET(request: NextRequest) {
       releaseDate: card.releaseDate,
       latestPrice: card.prices[0]?.price || null,
       activeListing: card._count.listings,
-      createdAt: card.createdAt
+      createdAt: card.createdAt,
+      // JSONフィールドのデコード
+      legalities: card.legalities ? Object.entries(card.legalities).map(([key, value]) => `${key}: ${value}`).join(', ') : null,
+      attacks: card.attacks,
+      abilities: card.abilities,
+      weaknesses: card.weaknesses,
+      resistances: card.resistances,
+      retreatCost: card.retreatCost,
+      rules: card.rules,
+      nationalPokedexNumbers: card.nationalPokedexNumbers,
+      source: card.source
     }))
 
     return NextResponse.json({
