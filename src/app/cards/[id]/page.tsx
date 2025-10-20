@@ -317,68 +317,60 @@ function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
       {/* flavor text */}
       {(() => {
         console.log('flavorText data:', data.flavorText);
-        if (data.flavorText && typeof data.flavorText === 'string' && data.flavorText.trim()) {
-          return (
-            <div className="mb-6">
-              <h4 className="text-md font-medium mb-2">フレーバーテキスト</h4>
-              <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
-                <tbody>
-                  <tr>
-                    <td className="px-4 py-2 text-gray-900 whitespace-pre-wrap">{data.flavorText}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          );
-        }
-        return null;
+        const flavorText = data.flavorText && typeof data.flavorText === 'string' && data.flavorText.trim() ? data.flavorText : null;
+        return (
+          <div className="mb-6">
+            <h4 className="text-md font-medium mb-2">フレーバーテキスト</h4>
+            <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
+              <tbody>
+                <tr>
+                  <td className="px-4 py-2 text-gray-900 whitespace-pre-wrap">
+                    {flavorText || <span className="text-gray-500">なし</span>}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        );
       })()}
       {/* 特性 */}
       {(() => {
-        if (data.abilities && (Array.isArray(data.abilities) || data.abilities === null || data.abilities === undefined)) {
-          return renderArrayAsTable('abilities', data.abilities || [], '特性');
-        }
-        return null;
+        const abilities = Array.isArray(data.abilities) ? data.abilities : [];
+        return renderArrayAsTable('abilities', abilities, '特性');
       })()}
       {/* ワザ */}
       {(() => {
-        if (data.attacks && (Array.isArray(data.attacks) || data.attacks === null || data.attacks === undefined)) {
-          return renderArrayAsTable('attacks', data.attacks || [], 'ワザ');
-        }
-        return null;
+        const attacks = Array.isArray(data.attacks) ? data.attacks : [];
+        return renderArrayAsTable('attacks', attacks, 'ワザ');
       })()}
       {/* 弱点 */}
       {(() => {
-        if (data.weaknesses && (Array.isArray(data.weaknesses) || data.weaknesses === null || data.weaknesses === undefined)) {
-          return renderArrayAsTable('weaknesses', data.weaknesses || [], '弱点');
-        }
-        return null;
+        const weaknesses = Array.isArray(data.weaknesses) ? data.weaknesses : [];
+        return renderArrayAsTable('weaknesses', weaknesses, '弱点');
       })()}
       {/* 効果テキスト */}
       {(() => {
         const effectText = data.effectText || data.effectTextJa;
-        if (effectText && typeof effectText === 'string' && effectText.trim()) {
-          return (
-            <div className="mb-6">
-              <h4 className="text-md font-medium mb-2">効果</h4>
-              <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
-                <tbody>
-                  <tr>
-                    <td className="px-4 py-2 text-gray-900 whitespace-pre-wrap">{effectText}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          );
-        }
-        return null;
+        const hasEffectText = effectText && typeof effectText === 'string' && effectText.trim();
+        return (
+          <div className="mb-6">
+            <h4 className="text-md font-medium mb-2">効果</h4>
+            <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
+              <tbody>
+                <tr>
+                  <td className="px-4 py-2 text-gray-900 whitespace-pre-wrap">
+                    {hasEffectText ? effectText : <span className="text-gray-500">なし</span>}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        );
       })()}
       {/* 抵抗力 */}
       {(() => {
-        if (Array.isArray(data.resistances) || data.resistances === null || data.resistances === undefined) {
-          return renderArrayAsTable('resistances', data.resistances || [], '抵抗力');
-        }
-        return null;
+        const resistances = Array.isArray(data.resistances) ? data.resistances : [];
+        return renderArrayAsTable('resistances', resistances, '抵抗力');
       })()}
       {/* リーガリティ */}
       {(() => {
@@ -409,10 +401,35 @@ function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
                   </table>
                 </div>
               );
+            } else {
+              return (
+                <div className="mb-6">
+                  <h4 className="text-md font-medium mb-2">リーガリティ</h4>
+                  <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
+                    <tbody>
+                      <tr>
+                        <td className="px-4 py-2 text-gray-500 text-center">なし</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              );
             }
           }
+        } else {
+          return (
+            <div className="mb-6">
+              <h4 className="text-md font-medium mb-2">リーガリティ</h4>
+              <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
+                <tbody>
+                  <tr>
+                    <td className="px-4 py-2 text-gray-500 text-center">なし</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          );
         }
-        return null;
       })()}
       {/* 逃げるコスト */}
       {(() => {
