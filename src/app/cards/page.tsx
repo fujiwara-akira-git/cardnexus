@@ -58,7 +58,7 @@ function CardsPageContent() {
   const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<SearchFilters>({
     name: '',
-    gameTitle: 'ポケモンカード',
+    gameTitle: 'Pokemon TCG',
     expansion: '',
     rarity: '',
     regulationMark: '',
@@ -94,7 +94,7 @@ function CardsPageContent() {
   const restoreFiltersFromURL = useCallback(() => {
     const urlFilters: SearchFilters = {
       name: searchParams.get('name') || '',
-      gameTitle: (searchParams.get('gameTitle') as GameType) || 'ポケモンカード',
+      gameTitle: (searchParams.get('gameTitle') as GameType) || 'Pokemon TCG',
       expansion: searchParams.get('expansion') || '',
       rarity: searchParams.get('rarity') || '',
       regulationMark: searchParams.get('regulationMark') || '',
@@ -111,7 +111,7 @@ function CardsPageContent() {
     setSelectedGame(game)
     const newFilters = {
       name: '',
-      gameTitle: game,
+      gameTitle: game === 'ポケモンカード' ? 'Pokemon TCG' : game,
       expansion: '',
       rarity: '',
       regulationMark: '',
@@ -183,7 +183,7 @@ function CardsPageContent() {
   const clearFilters = () => {
     const clearedFilters = {
       name: '',
-      gameTitle: selectedGame,
+      gameTitle: selectedGame === 'ポケモンカード' ? 'Pokemon TCG' : selectedGame,
       expansion: '',
       rarity: '',
       regulationMark: '',
@@ -295,7 +295,7 @@ function CardsPageContent() {
                   </label>
                   <input
                     type="text"
-                    placeholder="ポケモンカード, 遊戯王..."
+                    placeholder="Pokemon TCG, 遊戯王..."
                     value={filters.gameTitle}
                     onChange={(e) => handleFilterChange('gameTitle', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
