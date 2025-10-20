@@ -224,7 +224,7 @@ function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
     // 残りのフィールドを処理
     Object.entries(obj).forEach(([key, value]) => {
       // 除外するフィールドまたは既に処理した優先フィールドはスキップ
-      const excludedFields = ['id', 'gameTitle', 'rarity', 'hp', 'types', 'regulationMark', 'artist', 'name', 'subtypes', 'cardNumber', 'expansion', 'effectText', 'effectTextJa', 'cardType', 'cardTypeJa', 'evolveFrom', 'evolveFromJa', 'nationalPokedexNumbers', 'legalities', 'abilities', 'flavorText'];
+      const excludedFields = ['id', 'gameTitle', 'rarity', 'hp', 'types', 'regulationMark', 'artist', 'name', 'subtypes', 'cardNumber', 'expansion', 'effectText', 'effectTextJa', 'cardType', 'cardTypeJa', 'evolveFrom', 'evolveFromJa', 'nationalPokedexNumbers', 'legalities', 'abilities', 'flavorText', 'apiId', 'setId'];
       if (excludedFields.includes(key) || priorityFields.includes(key)) {
         return;
       }
