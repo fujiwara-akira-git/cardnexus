@@ -47,26 +47,31 @@ function loadCardsFromFile(regulation: string): NormalizedCard[] {
   const rawCards = JSON.parse(content);
   
   // データをNormalizedCard形式に変換
-  return rawCards.map((card: any): NormalizedCard => ({
-    apiId: card.id || '',
-    name: card.name || '',
-    gameTitle: 'ポケモンカード',
-    imageUrl: card.imageUrl || '',
-    rarity: card.rarity || null,
-    effectText: null, // 効果テキストは別途処理
-    cardNumber: card.number || '',
-    expansion: card.set?.name || '',
-    regulation: regulation,
-    cardType: card.supertype || '',
-    hp: card.hp || null,
-    types: Array.isArray(card.types) ? card.types.join(',') : card.types || null,
-    evolveFrom: card.evolvesFrom || null,
-    releaseDate: card.set?.releaseDate || '',
-    artist: card.artist || null,
-    subtypes: Array.isArray(card.subtypes) ? card.subtypes.join(',') : card.subtypes || null,
-    flavorText: card.flavorText || null,
-    setId: card.set?.id || null,
-  }));
+  return rawCards.map((card: any): NormalizedCard => {
+    // apiIdからsetIdを抽出（例: "sv1-8" -> "sv1"）
+    const setId = card.id ? card.id.split('-')[0] : null;
+    
+    return {
+      apiId: card.id || '',
+      name: card.name || '',
+      gameTitle: 'ポケモンカード',
+      imageUrl: card.imageUrl || '',
+      rarity: card.rarity || null,
+      effectText: null, // 効果テキストは別途処理
+      cardNumber: card.number || '',
+      expansion: card.set?.name || '',
+      regulation: regulation,
+      cardType: card.supertype || '',
+      hp: card.hp || null,
+      types: Array.isArray(card.types) ? card.types.join(',') : card.types || null,
+      evolveFrom: card.evolvesFrom || null,
+      releaseDate: card.set?.releaseDate || '',
+      artist: card.artist || null,
+      subtypes: Array.isArray(card.subtypes) ? card.subtypes.join(',') : card.subtypes || null,
+      flavorText: card.flavorText || null,
+      setId: setId,
+    };
+  });
 }
 
 /**
