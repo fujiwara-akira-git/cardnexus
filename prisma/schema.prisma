@@ -53,6 +53,7 @@ model Card {
   cardType       String?
   cardTypeJa     String?
   effectTextJa   String?
+  flavorText     String?
   evolveFrom     String?
   evolveFromJa   String?
   expansionJa    String?

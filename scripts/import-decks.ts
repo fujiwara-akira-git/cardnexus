@@ -56,28 +56,6 @@ async function fetchDeckFileList(): Promise<string[]> {
     return [];
   }
 }
-  const url = 'https://api.github.com/repos/PokemonTCG/pokemon-tcg-data/contents/decks/en';
-  console.log('� GitHubからデッキファイル一覧を取得中...');
-
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const files = await response.json();
-
-    // .jsonファイルのみをフィルタリング
-    const jsonFiles = files
-      .filter((file: any) => file.name.endsWith('.json'))
-      .map((file: any) => file.name);
-
-    console.log(`📋 ${jsonFiles.length}個のデッキファイルが見つかりました`);
-    return jsonFiles;
-  } catch (error) {
-    console.error('❌ ファイル一覧取得エラー:', error);
-    return [];
-  }
-}
 
 /**
  * デッキデータをPrismaのDeck形式に変換
@@ -196,8 +174,8 @@ async function main() {
     // すべてのデッキファイルを取得
     const allFiles = await fetchDeckFileList();
 
-    // 最初の10ファイルのみ処理（大量なので制限）
-    const filesToProcess = allFiles.slice(0, 10);
+    // すべてのデッキファイルを処理
+    const filesToProcess = allFiles;
 
     console.log(`🚀 ${filesToProcess.length}個のデッキファイルを処理します`);
 

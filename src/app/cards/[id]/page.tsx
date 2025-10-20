@@ -1,4 +1,3 @@
-
 import React from "react";
 import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
@@ -16,6 +15,7 @@ const fieldLabels: Record<string, string> = {
   rarity: 'レアリティ',
   effectText: '効果テキスト',
   effectTextJa: '効果テキスト（日本語）',
+  flavorText: 'フレーバーテキスト',
   imageUrl: '画像URL',
   regulationMark: 'レギュレーションマーク',
   cardType: 'カードタイプ',
@@ -35,7 +35,7 @@ const fieldLabels: Record<string, string> = {
   weaknesses: '弱点',
   resistances: '抵抗力',
   retreatCost: 'にげるコスト',
-  legalities: '合法性',
+  legalities: 'リーガリティ',
   rules: 'ルール',
   nationalPokedexNumbers: '全国図鑑番号',
   priceStats: '価格統計',
@@ -223,7 +223,7 @@ function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
     // 残りのフィールドを処理
     Object.entries(obj).forEach(([key, value]) => {
       // 除外するフィールドまたは既に処理した優先フィールドはスキップ
-      const excludedFields = ['id', 'gameTitle', 'rarity', 'hp', 'types', 'regulationMark', 'artist', 'name', 'subtypes'];
+      const excludedFields = ['id', 'gameTitle', 'rarity', 'hp', 'types', 'regulationMark', 'artist', 'name', 'subtypes', 'cardNumber', 'expansion', 'effectText', 'effectTextJa', 'cardType', 'cardTypeJa', 'evolveFrom', 'evolveFromJa', 'nationalPokedexNumbers', 'legalities', 'abilities', 'flavorText'];
       if (excludedFields.includes(key) || priorityFields.includes(key)) {
         return;
       }
@@ -305,7 +305,7 @@ function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
   const flatData = flattenData(data);
 
   // retreatCost, rulesを除外して一番下に残らないように
-  const bottomFields = ['nationalPokedexNumbers', 'imageUrl', 'createdAt', 'retreatCost', 'rules'];
+  const bottomFields = ['imageUrl', 'createdAt', 'retreatCost', 'rules'];
   const bottomData = flatData.filter(item => bottomFields.includes(item.key.split('.').pop() || ''));
   const otherData = flatData.filter(item => !bottomFields.includes(item.key.split('.').pop() || ''));
 
@@ -313,37 +313,108 @@ function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
 
   return (
     <div>
-      {/* 配列データをテーブル形式で表示 */}
+      {/* flavor text */}
       {(() => {
-        // ワザ
+        console.log('flavorText data:', data.flavorText);
+        if (data.flavorText && typeof data.flavorText === 'string' && data.flavorText.trim()) {
+          return (
+            <div className="mb-6">
+              <h4 className="text-md font-medium mb-2">フレーバーテキスト</h4>
+              <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
+                <tbody>
+                  <tr>
+                    <td className="px-4 py-2 text-gray-900 whitespace-pre-wrap">{data.flavorText}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          );
+        }
+        return null;
+      })()}
+      {/* 特性 */}
+      {(() => {
+        if (data.abilities && (Array.isArray(data.abilities) || data.abilities === null || data.abilities === undefined)) {
+          return renderArrayAsTable('abilities', data.abilities || [], '特性');
+        }
+        return null;
+      })()}
+      {/* ワザ */}
+      {(() => {
         if (data.attacks && (Array.isArray(data.attacks) || data.attacks === null || data.attacks === undefined)) {
           return renderArrayAsTable('attacks', data.attacks || [], 'ワザ');
         }
         return null;
       })()}
+      {/* 弱点 */}
       {(() => {
-        // 弱点
         if (data.weaknesses && (Array.isArray(data.weaknesses) || data.weaknesses === null || data.weaknesses === undefined)) {
           return renderArrayAsTable('weaknesses', data.weaknesses || [], '弱点');
         }
         return null;
       })()}
+      {/* 効果テキスト */}
       {(() => {
-        // 抵抗力
+        const effectText = data.effectText || data.effectTextJa;
+        if (effectText && typeof effectText === 'string' && effectText.trim()) {
+          return (
+            <div className="mb-6">
+              <h4 className="text-md font-medium mb-2">効果</h4>
+              <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
+                <tbody>
+                  <tr>
+                    <td className="px-4 py-2 text-gray-900 whitespace-pre-wrap">{effectText}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          );
+        }
+        return null;
+      })()}
+      {/* 抵抗力 */}
+      {(() => {
         if (Array.isArray(data.resistances) || data.resistances === null || data.resistances === undefined) {
           return renderArrayAsTable('resistances', data.resistances || [], '抵抗力');
         }
         return null;
       })()}
+      {/* リーガリティ */}
       {(() => {
-        // 特性
-        if (Array.isArray(data.abilities) || data.abilities === null || data.abilities === undefined) {
-          return renderArrayAsTable('abilities', data.abilities || [], '特性');
+        console.log('legalities data:', data.legalities);
+        if (data.legalities && (Array.isArray(data.legalities) || typeof data.legalities === 'object')) {
+          if (Array.isArray(data.legalities)) {
+            return renderArrayAsTable('legalities', data.legalities, 'リーガリティ');
+          } else {
+            // オブジェクトの場合、キーと値を表示
+            const entries = Object.entries(data.legalities as Record<string, unknown>);
+            if (entries.length > 0) {
+              return (
+                <div className="mb-6">
+                  <h4 className="text-md font-medium mb-2">リーガリティ</h4>
+                  <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
+                    <tbody>
+                      {entries.map(([key, value]) => (
+                        <tr key={key} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="px-4 py-2 font-medium text-gray-700 border-r border-gray-200">
+                            {fieldLabels[key] || key}
+                          </td>
+                          <td className="px-4 py-2 text-gray-900">
+                            {String(value)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            }
+          }
         }
         return null;
       })()}
+      {/* 逃げるコスト */}
       {(() => {
-        // 逃げるコスト
         let retreatArr: string[] = [];
         if (Array.isArray(data.retreatCost)) {
           retreatArr = data.retreatCost as string[];
@@ -388,8 +459,8 @@ function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
           );
         }
       })()}
+      {/* ルール */}
       {(() => {
-        // ルール
         let rulesArr: string[] = [];
         if (Array.isArray(data.rules)) {
           rulesArr = data.rules as string[];
@@ -532,6 +603,12 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
                         <td className="p-2">{card.cardNumber}</td>
                       </tr>
                     )}
+                    {card.apiId && (
+                      <tr>
+                        <th className="text-left p-2 text-gray-600 bg-gray-50">Pokemon TCG card id</th>
+                        <td className="p-2">{card.apiId}</td>
+                      </tr>
+                    )}
                     {card.hp && (
                       <tr>
                         <th className="text-left p-2 text-gray-600 bg-gray-50">HP</th>
@@ -578,6 +655,24 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
                       <tr>
                         <th className="text-left p-2 text-gray-600 bg-gray-50">発売日</th>
                         <td className="p-2">{card.releaseDate}</td>
+                      </tr>
+                    )}
+                    {(card.cardType || card.cardTypeJa) && (
+                      <tr>
+                        <th className="text-left p-2 text-gray-600 bg-gray-50">カードタイプ</th>
+                        <td className="p-2">{card.cardTypeJa || card.cardType}</td>
+                      </tr>
+                    )}
+                    {(card.evolveFrom || card.evolveFromJa) && (
+                      <tr>
+                        <th className="text-left p-2 text-gray-600 bg-gray-50">進化元</th>
+                        <td className="p-2">{card.evolveFromJa || card.evolveFrom}</td>
+                      </tr>
+                    )}
+                    {card.nationalPokedexNumbers && Array.isArray(card.nationalPokedexNumbers) && card.nationalPokedexNumbers.length > 0 && (
+                      <tr>
+                        <th className="text-left p-2 text-gray-600 bg-gray-50">全国図鑑番号</th>
+                        <td className="p-2">{card.nationalPokedexNumbers.join(', ')}</td>
                       </tr>
                     )}
                   </tbody>

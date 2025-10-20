@@ -1,20 +1,56 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient({
+  datasourceUrl: process.env.DATABASE_URL,
+})
 
 // カード詳細情報の取得
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function GET(request: NextRequest, context: any) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id: cardId } = await context.params
+    const { id: cardId } = await params
 
     // カード詳細の取得（価格履歴、アクティブな出品も含む）
     // extraJsonも取得するためselectで全フィールド取得
     const card = await prisma.card.findUnique({
       where: { id: cardId },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        gameTitle: true,
+        imageUrl: true,
+        rarity: true,
+        effectText: true,
+        flavorText: true,
+        cardNumber: true,
+        expansion: true,
+        createdAt: true,
+        updatedAt: true,
+        apiId: true,
+        artist: true,
+        cardType: true,
+        cardTypeJa: true,
+        effectTextJa: true,
+        evolveFrom: true,
+        evolveFromJa: true,
+        expansionJa: true,
+        hp: true,
+        nameJa: true,
+        regulationMark: true,
+        releaseDate: true,
+        subtypes: true,
+        subtypesJa: true,
+        types: true,
+        typesJa: true,
+        attacks: true,
+        abilities: true,
+        weaknesses: true,
+        resistances: true,
+        retreatCost: true,
+        rules: true,
+        legalities: true,
+        nationalPokedexNumbers: true,
+        source: true,
         prices: {
           orderBy: { recordedAt: 'desc' },
           take: 30,
@@ -69,11 +105,13 @@ export async function GET(request: NextRequest, context: any) {
       nameJa: card.nameJa,
       gameTitle: card.gameTitle,
       cardNumber: card.cardNumber,
+      apiId: card.apiId,
       expansion: card.expansion,
       expansionJa: card.expansionJa,
       rarity: card.rarity,
       effectText: card.effectText,
       effectTextJa: card.effectTextJa,
+      flavorText: card.flavorText,
       imageUrl: card.imageUrl,
       regulationMark: card.regulationMark,
       cardType: card.cardType,
@@ -94,7 +132,7 @@ export async function GET(request: NextRequest, context: any) {
       weaknesses: card.weaknesses,
       resistances: card.resistances,
       retreatCost: card.retreatCost,
-      legalities: card.legalities ? Object.entries(card.legalities).map(([key, value]) => `${key}: ${value}`).join(', ') : null,
+      legalities: card.legalities,
       rules: card.rules,
       nationalPokedexNumbers: card.nationalPokedexNumbers,
       priceStats,

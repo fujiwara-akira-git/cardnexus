@@ -1,19 +1,33 @@
 const { PrismaClient } = require('@prisma/client')
 
 async function testConnection() {
-  const prisma = new PrismaClient()
+  const prisma = new PrismaClient({
+    datasourceUrl: process.env.DATABASE_URL,
+  })
   
   try {
     await prisma.$connect()
     console.log('✅ データベース接続成功')
     
-    // 既存のテーブル確認
-    const result = await prisma.$queryRaw`
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = 'public'
-    `
-    console.log('📋 既存のテーブル:', result)
+    // flavorTextがあるカードを検索
+    const cardsWithFlavorText = await prisma.card.findMany({
+      where: {
+        flavorText: {
+          not: null
+        }
+      },
+      select: {
+        id: true,
+        name: true,
+        flavorText: true
+      },
+      take: 5
+    })
+    
+    console.log('📋 flavorTextがあるカード:')
+    cardsWithFlavorText.forEach(card => {
+      console.log(`- ${card.name} (${card.id}): ${card.flavorText}`)
+    })
     
   } catch (error) {
     console.error('❌ データベース接続エラー:', error.message)

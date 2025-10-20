@@ -27,13 +27,15 @@ interface NormalizedCard {
   releaseDate: string;
   artist: string | null;
   subtypes: string | null;
+  flavorText: string | null;
 }
 
 /**
  * JSONファイルからカードデータを読み込む
  */
 function loadCardsFromFile(regulation: string): NormalizedCard[] {
-  const filePath = path.join(__dirname, '..', 'data', 'pokemon-cards', `regulation-${regulation}.json`);
+  // GitHubから取得した最新のファイルを使用
+  const filePath = path.join(__dirname, '..', 'data', 'pokemon-cards', `regulation-${regulation}-github.json`);
   
   if (!fs.existsSync(filePath)) {
     console.error(`ファイルが見つかりません: ${filePath}`);
@@ -41,7 +43,28 @@ function loadCardsFromFile(regulation: string): NormalizedCard[] {
   }
 
   const content = fs.readFileSync(filePath, 'utf-8');
-  return JSON.parse(content);
+  const rawCards = JSON.parse(content);
+  
+  // データをNormalizedCard形式に変換
+  return rawCards.map((card: any): NormalizedCard => ({
+    apiId: card.id || '',
+    name: card.name || '',
+    gameTitle: 'ポケモンカード',
+    imageUrl: card.imageUrl || '',
+    rarity: card.rarity || null,
+    effectText: null, // 効果テキストは別途処理
+    cardNumber: card.number || '',
+    expansion: card.set?.name || '',
+    regulation: regulation,
+    cardType: card.supertype || '',
+    hp: card.hp || null,
+    types: Array.isArray(card.types) ? card.types.join(',') : card.types || null,
+    evolveFrom: card.evolvesFrom || null,
+    releaseDate: card.set?.releaseDate || '',
+    artist: card.artist || null,
+    subtypes: Array.isArray(card.subtypes) ? card.subtypes.join(',') : card.subtypes || null,
+    flavorText: card.flavorText || null,
+  }));
 }
 
 /**
@@ -59,29 +82,26 @@ async function importCards(regulation: string): Promise<number> {
 
   let importCount = 0;
   let updateCount = 0;
+  let createCount = 0;
   let skipCount = 0;
 
   for (const card of cards) {
     try {
-      // カード番号と拡張パック名で既存カードをチェック
-      const existing = await prisma.card.findFirst({
-        where: {
-          cardNumber: card.cardNumber,
-          expansion: card.expansion,
-          gameTitle: card.gameTitle,
-        },
+      // apiIdで既存カードをチェック
+      const existing = await prisma.card.findUnique({
+        where: { apiId: card.apiId },
       });
 
       if (existing) {
         // 既存カードを更新
         await prisma.card.update({
-          where: { id: existing.id },
+          where: { apiId: card.apiId },
           data: {
-            apiId: card.apiId,
             name: card.name,
             imageUrl: card.imageUrl,
             rarity: card.rarity,
             effectText: card.effectText,
+            flavorText: card.flavorText,
             regulationMark: card.regulation,
             cardType: card.cardType,
             hp: card.hp,
@@ -95,15 +115,36 @@ async function importCards(regulation: string): Promise<number> {
         });
         updateCount++;
       } else {
-        // 新規カードを作成
-        await prisma.card.create({
-          data: {
+        // 新規カードを作成または既存カードを更新
+        await prisma.card.upsert({
+          where: { apiId: card.apiId },
+          update: {
+            name: card.name,
+            gameTitle: card.gameTitle,
+            imageUrl: card.imageUrl,
+            rarity: card.rarity,
+            effectText: card.effectText,
+            flavorText: card.flavorText,
+            cardNumber: card.cardNumber,
+            expansion: card.expansion,
+            regulationMark: card.regulation,
+            cardType: card.cardType,
+            hp: card.hp,
+            types: Array.isArray(card.types) ? card.types.join(',') : card.types,
+            evolveFrom: card.evolveFrom,
+            artist: card.artist,
+            subtypes: Array.isArray(card.subtypes) ? card.subtypes.join(',') : card.subtypes,
+            releaseDate: card.releaseDate,
+            updatedAt: new Date(),
+          },
+          create: {
             apiId: card.apiId,
             name: card.name,
             gameTitle: card.gameTitle,
             imageUrl: card.imageUrl,
             rarity: card.rarity,
             effectText: card.effectText,
+            flavorText: card.flavorText,
             cardNumber: card.cardNumber,
             expansion: card.expansion,
             regulationMark: card.regulation,
@@ -116,6 +157,7 @@ async function importCards(regulation: string): Promise<number> {
             releaseDate: card.releaseDate,
           },
         });
+        createCount++;
         importCount++;
       }
 
