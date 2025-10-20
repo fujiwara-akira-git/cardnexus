@@ -22,6 +22,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         rarity: true,
         effectText: true,
         flavorText: true,
+        setId: true,
         cardNumber: true,
         expansion: true,
         createdAt: true,
