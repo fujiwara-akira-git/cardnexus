@@ -28,6 +28,7 @@ interface NormalizedCard {
   artist: string | null;
   subtypes: string | null;
   flavorText: string | null;
+  setId: string | null;
 }
 
 /**
@@ -64,6 +65,7 @@ function loadCardsFromFile(regulation: string): NormalizedCard[] {
     artist: card.artist || null,
     subtypes: Array.isArray(card.subtypes) ? card.subtypes.join(',') : card.subtypes || null,
     flavorText: card.flavorText || null,
+    setId: card.set?.id || null,
   }));
 }
 
@@ -102,6 +104,7 @@ async function importCards(regulation: string): Promise<number> {
             rarity: card.rarity,
             effectText: card.effectText,
             flavorText: card.flavorText,
+            setId: card.setId,
             regulationMark: card.regulation,
             cardType: card.cardType,
             hp: card.hp,
@@ -125,6 +128,7 @@ async function importCards(regulation: string): Promise<number> {
             rarity: card.rarity,
             effectText: card.effectText,
             flavorText: card.flavorText,
+            setId: card.setId,
             cardNumber: card.cardNumber,
             expansion: card.expansion,
             regulationMark: card.regulation,
@@ -145,6 +149,7 @@ async function importCards(regulation: string): Promise<number> {
             rarity: card.rarity,
             effectText: card.effectText,
             flavorText: card.flavorText,
+            setId: card.setId,
             cardNumber: card.cardNumber,
             expansion: card.expansion,
             regulationMark: card.regulation,

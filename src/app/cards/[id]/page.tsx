@@ -16,6 +16,7 @@ const fieldLabels: Record<string, string> = {
   effectText: '効果テキスト',
   effectTextJa: '効果テキスト（日本語）',
   flavorText: 'フレーバーテキスト',
+  setId: 'セットID',
   imageUrl: '画像URL',
   regulationMark: 'レギュレーションマーク',
   cardType: 'カードタイプ',
