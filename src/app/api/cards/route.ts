@@ -6,6 +6,21 @@ const prisma = new PrismaClient()
 // カード一覧の取得
 export async function GET(request: NextRequest) {
   try {
+    console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL)
+    console.log('DATABASE_URL starts with:', process.env.DATABASE_URL?.substring(0, 20))
+    
+    // Test database connection
+    try {
+      await prisma.$connect()
+      console.log('Database connection successful')
+    } catch (dbError) {
+      console.error('Database connection failed:', dbError)
+      return NextResponse.json(
+        { success: false, error: 'データベース接続に失敗しました' },
+        { status: 500 }
+      )
+    }
+    
     const { searchParams } = new URL(request.url)
     const gameTitle = searchParams.get('gameTitle')
     const name = searchParams.get('name')
