@@ -113,6 +113,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       effectText: card.effectText,
       effectTextJa: card.effectTextJa,
       flavorText: card.flavorText,
+      setId: card.setId,
       imageUrl: card.imageUrl,
       regulationMark: card.regulationMark,
       cardType: card.cardType,
