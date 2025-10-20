@@ -615,6 +615,12 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
                         <td className="p-2">{card.expansion}</td>
                       </tr>
                     )}
+                    {card.setId && (
+                      <tr>
+                        <th className="text-left p-2 text-gray-600 bg-gray-50">セットID</th>
+                        <td className="p-2">{card.setId}</td>
+                      </tr>
+                    )}
                     {card.cardNumber && (
                       <tr>
                         <th className="text-left p-2 text-gray-600 bg-gray-50">カードNo.</th>
