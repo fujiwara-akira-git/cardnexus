@@ -22,6 +22,7 @@ const fieldLabels: Record<string, string> = {
   regulationMark: 'レギュレーションマーク',
   cardType: 'カードタイプ',
   cardTypeJa: 'カードタイプ（日本語）',
+  supertype: 'スーパータイプ',
   hp: 'HP',
   types: 'タイプ',
   typesJa: 'タイプ（日本語）',
@@ -693,6 +694,12 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
                       <tr>
                         <th className="text-left p-2 text-gray-600 bg-gray-50">カードタイプ</th>
                         <td className="p-2">{card.cardTypeJa || card.cardType}</td>
+                      </tr>
+                    )}
+                    {card.supertype && (
+                      <tr>
+                        <th className="text-left p-2 text-gray-600 bg-gray-50">スーパータイプ</th>
+                        <td className="p-2">{card.supertype}</td>
                       </tr>
                     )}
                     {(card.evolveFrom || card.evolveFromJa) && (card.evolveFrom !== '' || card.evolveFromJa !== '') && (

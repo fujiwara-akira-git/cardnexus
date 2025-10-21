@@ -69,6 +69,7 @@ model Card {
   artist         String?
   cardType       String?
   cardTypeJa     String?
+  supertype      String?
   effectTextJa   String?
   flavorText     String?
   setId          String?    // Keep for migration, will be removed after data migration

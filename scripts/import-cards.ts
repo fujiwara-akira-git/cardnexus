@@ -27,6 +27,7 @@ function transformCardData(card: any): any {
     expansion: card.setCode,
     regulationMark: card.regulation || card.regulationMark || null,
     cardType: card.supertype,
+    supertype: card.supertype,
     hp: card.hp || null,
     types: card.types ? card.types.join(', ') : null,
     evolveFrom: card.evolvesFrom || null,
