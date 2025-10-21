@@ -7,7 +7,7 @@ import Link from 'next/link'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
-type GameType = 'ポケモンカード' | '遊戯王' | '未登録カード'
+type GameType = 'Pokemon TCG' | 'Yu-Gi-Oh' | 'Unregistered Cards'
 
 interface Card {
   id: string
@@ -52,13 +52,13 @@ function CardsPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   
-  const [selectedGame, setSelectedGame] = useState<GameType>('ポケモンカード')
+  const [selectedGame, setSelectedGame] = useState<GameType>('Pokemon TCG')
   const [cards, setCards] = useState<Card[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<SearchFilters>({
     name: '',
-    gameTitle: 'ポケモンカード',
+    gameTitle: 'Pokemon TCG',
     expansion: '',
     rarity: '',
     regulationMark: '',
@@ -94,7 +94,7 @@ function CardsPageContent() {
   const restoreFiltersFromURL = useCallback(() => {
     const urlFilters: SearchFilters = {
       name: searchParams.get('name') || '',
-      gameTitle: (searchParams.get('gameTitle') as GameType) || 'ポケモンカード',
+      gameTitle: (searchParams.get('gameTitle') as GameType) || 'Pokemon TCG',
       expansion: searchParams.get('expansion') || '',
       rarity: searchParams.get('rarity') || '',
       regulationMark: searchParams.get('regulationMark') || '',
@@ -224,9 +224,9 @@ function CardsPageContent() {
           {/* ゲーム切り替えボタン */}
           <div className="flex gap-3 mb-6 pb-6 border-b border-gray-200">
             <button
-              onClick={() => handleGameChange('ポケモンカード')}
+              onClick={() => handleGameChange('Pokemon TCG')}
               className={`flex-1 sm:flex-none px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${
-                selectedGame === 'ポケモンカード'
+                selectedGame === 'Pokemon TCG'
                   ? 'bg-yellow-500 text-white shadow-md'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
@@ -235,9 +235,9 @@ function CardsPageContent() {
               <span>ポケモンカード</span>
             </button>
             <button
-              onClick={() => handleGameChange('遊戯王')}
+              onClick={() => handleGameChange('Yu-Gi-Oh')}
               className={`flex-1 sm:flex-none px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${
-                selectedGame === '遊戯王'
+                selectedGame === 'Yu-Gi-Oh'
                   ? 'bg-purple-500 text-white shadow-md'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
@@ -246,9 +246,9 @@ function CardsPageContent() {
               <span>遊戯王</span>
             </button>
             <button
-              onClick={() => handleGameChange('未登録カード')}
+              onClick={() => handleGameChange('Unregistered Cards')}
               className={`flex-1 sm:flex-none px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${
-                selectedGame === '未登録カード'
+                selectedGame === 'Unregistered Cards'
                   ? 'bg-gray-500 text-white shadow-md'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
@@ -324,7 +324,7 @@ function CardsPageContent() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
-                {selectedGame !== '未登録カード' && (
+                {selectedGame !== 'Unregistered Cards' && (
                   <>
                     <div>
                       <label htmlFor="rarity-select" className="block text-sm font-medium text-gray-700 mb-2">
