@@ -2,6 +2,7 @@ import React from "react";
 import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
 import Image from "next/image";
+import Link from "next/link";
 
 // フィールド名の日本語マッピング
 const fieldLabels: Record<string, string> = {
@@ -314,25 +315,6 @@ function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
 
   return (
     <div>
-      {/* flavor text */}
-      {(() => {
-        console.log('flavorText data:', data.flavorText);
-        const flavorText = data.flavorText && typeof data.flavorText === 'string' && data.flavorText.trim() ? data.flavorText : null;
-        return (
-          <div className="mb-6">
-            <h4 className="text-md font-medium mb-2">フレーバーテキスト</h4>
-            <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
-              <tbody>
-                <tr>
-                  <td className="px-4 py-2 text-gray-900 whitespace-pre-wrap">
-                    {flavorText || <span className="text-gray-500">なし</span>}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        );
-      })()}
       {/* 特性 */}
       {(() => {
         const abilities = Array.isArray(data.abilities) ? data.abilities : [];
@@ -371,6 +353,25 @@ function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
       {(() => {
         const resistances = Array.isArray(data.resistances) ? data.resistances : [];
         return renderArrayAsTable('resistances', resistances, '抵抗力');
+      })()}
+      {/* flavor text */}
+      {(() => {
+        console.log('flavorText data:', data.flavorText);
+        const flavorText = data.flavorText && typeof data.flavorText === 'string' && data.flavorText.trim() ? data.flavorText : null;
+        return (
+          <div className="mb-6">
+            <h4 className="text-md font-medium mb-2">フレーバーテキスト</h4>
+            <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
+              <tbody>
+                <tr>
+                  <td className="px-4 py-2 text-gray-900 whitespace-pre-wrap">
+                    {flavorText || <span className="text-gray-500">なし</span>}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        );
       })()}
       {/* リーガリティ */}
       {(() => {
@@ -617,8 +618,15 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
                     )}
                     {card.setId && (
                       <tr>
-                        <th className="text-left p-2 text-gray-600 bg-gray-50">セットID</th>
-                        <td className="p-2">{card.setId}</td>
+                        <th className="text-left p-2 text-gray-600 bg-gray-50">セット</th>
+                        <td className="p-2">
+                          <Link
+                            href={`/sets/${card.setId}`}
+                            className="text-blue-600 hover:text-blue-800 underline"
+                          >
+                            {card.setId}
+                          </Link>
+                        </td>
                       </tr>
                     )}
                     {card.cardNumber && (
@@ -687,7 +695,7 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
                         <td className="p-2">{card.cardTypeJa || card.cardType}</td>
                       </tr>
                     )}
-                    {(card.evolveFrom || card.evolveFromJa) && (
+                    {(card.evolveFrom || card.evolveFromJa) && (card.evolveFrom !== '' || card.evolveFromJa !== '') && (
                       <tr>
                         <th className="text-left p-2 text-gray-600 bg-gray-50">進化元</th>
                         <td className="p-2">{card.evolveFromJa || card.evolveFrom}</td>

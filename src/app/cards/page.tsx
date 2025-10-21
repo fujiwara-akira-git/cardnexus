@@ -7,7 +7,7 @@ import Link from 'next/link'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
-type GameType = 'ポケモンカード' | '遊戯王'
+type GameType = 'ポケモンカード' | '遊戯王' | '未登録カード'
 
 interface Card {
   id: string
@@ -58,7 +58,7 @@ function CardsPageContent() {
   const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<SearchFilters>({
     name: '',
-    gameTitle: 'Pokemon TCG',
+    gameTitle: 'ポケモンカード',
     expansion: '',
     rarity: '',
     regulationMark: '',
@@ -94,7 +94,7 @@ function CardsPageContent() {
   const restoreFiltersFromURL = useCallback(() => {
     const urlFilters: SearchFilters = {
       name: searchParams.get('name') || '',
-      gameTitle: (searchParams.get('gameTitle') as GameType) || 'Pokemon TCG',
+      gameTitle: (searchParams.get('gameTitle') as GameType) || 'ポケモンカード',
       expansion: searchParams.get('expansion') || '',
       rarity: searchParams.get('rarity') || '',
       regulationMark: searchParams.get('regulationMark') || '',
@@ -111,7 +111,7 @@ function CardsPageContent() {
     setSelectedGame(game)
     const newFilters = {
       name: '',
-      gameTitle: game === 'ポケモンカード' ? 'Pokemon TCG' : game,
+      gameTitle: game,
       expansion: '',
       rarity: '',
       regulationMark: '',
@@ -183,7 +183,7 @@ function CardsPageContent() {
   const clearFilters = () => {
     const clearedFilters = {
       name: '',
-      gameTitle: selectedGame === 'ポケモンカード' ? 'Pokemon TCG' : selectedGame,
+      gameTitle: selectedGame,
       expansion: '',
       rarity: '',
       regulationMark: '',
@@ -244,6 +244,17 @@ function CardsPageContent() {
             >
               <span className="text-xl">🎴</span>
               <span>遊戯王</span>
+            </button>
+            <button
+              onClick={() => handleGameChange('未登録カード')}
+              className={`flex-1 sm:flex-none px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer ${
+                selectedGame === '未登録カード'
+                  ? 'bg-gray-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <span className="text-xl">📋</span>
+              <span>未登録カード</span>
             </button>
           </div>
 
@@ -313,57 +324,61 @@ function CardsPageContent() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
-                <div>
-                  <label htmlFor="rarity-select" className="block text-sm font-medium text-gray-700 mb-2">
-                    レアリティ
-                  </label>
-                  <select
-                    id="rarity-select"
-                    value={filters.rarity}
-                    onChange={(e) => handleFilterChange('rarity', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">すべて</option>
-                    <option value="Common">Common</option>
-                    <option value="Uncommon">Uncommon</option>
-                    <option value="Rare">Rare</option>
-                    <option value="Rare Holo">Rare Holo</option>
-                    <option value="Rare Ultra">Rare Ultra</option>
-                    <option value="Rare Rainbow">Rare Rainbow</option>
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="regulation-select" className="block text-sm font-medium text-gray-700 mb-2">
-                    レギュレーション
-                  </label>
-                  <select
-                    id="regulation-select"
-                    value={filters.regulationMark}
-                    onChange={(e) => handleFilterChange('regulationMark', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">すべて</option>
-                    <option value="G">G (スタンダード)</option>
-                    <option value="H">H (スタンダード)</option>
-                    <option value="I">I (スタンダード)</option>
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="cardtype-select" className="block text-sm font-medium text-gray-700 mb-2">
-                    カードタイプ
-                  </label>
-                  <select
-                    id="cardtype-select"
-                    value={filters.cardType}
-                    onChange={(e) => handleFilterChange('cardType', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">すべて</option>
-                    <option value="Pokémon">ポケモン</option>
-                    <option value="Trainer">トレーナー</option>
-                    <option value="Energy">エネルギー</option>
-                  </select>
-                </div>
+                {selectedGame !== '未登録カード' && (
+                  <>
+                    <div>
+                      <label htmlFor="rarity-select" className="block text-sm font-medium text-gray-700 mb-2">
+                        レアリティ
+                      </label>
+                      <select
+                        id="rarity-select"
+                        value={filters.rarity}
+                        onChange={(e) => handleFilterChange('rarity', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="">すべて</option>
+                        <option value="Common">Common</option>
+                        <option value="Uncommon">Uncommon</option>
+                        <option value="Rare">Rare</option>
+                        <option value="Rare Holo">Rare Holo</option>
+                        <option value="Rare Ultra">Rare Ultra</option>
+                        <option value="Rare Rainbow">Rare Rainbow</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="regulation-select" className="block text-sm font-medium text-gray-700 mb-2">
+                        レギュレーション
+                      </label>
+                      <select
+                        id="regulation-select"
+                        value={filters.regulationMark}
+                        onChange={(e) => handleFilterChange('regulationMark', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="">すべて</option>
+                        <option value="G">G (スタンダード)</option>
+                        <option value="H">H (スタンダード)</option>
+                        <option value="I">I (スタンダード)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="cardtype-select" className="block text-sm font-medium text-gray-700 mb-2">
+                        カードタイプ
+                      </label>
+                      <select
+                        id="cardtype-select"
+                        value={filters.cardType}
+                        onChange={(e) => handleFilterChange('cardType', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="">すべて</option>
+                        <option value="Pokémon">ポケモン</option>
+                        <option value="Trainer">トレーナー</option>
+                        <option value="Energy">エネルギー</option>
+                      </select>
+                    </div>
+                  </>
+                )}
               </div>
               <button
                 onClick={clearFilters}

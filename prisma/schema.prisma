@@ -37,6 +37,23 @@ model User {
   @@map("users")
 }
 
+model Set {
+  id          String   @id
+  name        String
+  series      String
+  releaseDate String?
+  totalCards  Int?
+  printedTotal Int?
+  legalities  Json?
+  images      Json?
+  ptcgoCode   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  cards       Card[]
+
+  @@map("sets")
+}
+
 model Card {
   id             String     @id @default(cuid())
   name           String
@@ -54,7 +71,8 @@ model Card {
   cardTypeJa     String?
   effectTextJa   String?
   flavorText     String?
-  setId          String?
+  setId          String?    // Keep for migration, will be removed after data migration
+  set            Set?       @relation(fields: [setId], references: [id])
   evolveFrom     String?
   evolveFromJa   String?
   expansionJa    String?
@@ -83,6 +101,32 @@ model Card {
   prices         Price[]
 
   @@map("cards")
+}
+
+model UnregisteredCard {
+  id             String   @id @default(cuid())
+  name           String
+  gameTitle      String
+  cardNumber     String?
+  expansion      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deckUnregisteredCards DeckUnregisteredCard[]
+
+  @@unique([name, cardNumber, expansion])
+  @@map("unregistered_cards")
+}
+
+model DeckUnregisteredCard {
+  id                 String   @id @default(cuid())
+  deckId             String
+  unregisteredCardId String
+  quantity           Int      @default(1)
+  deck               Deck     @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  unregisteredCard   UnregisteredCard @relation(fields: [unregisteredCardId], references: [id], onDelete: Cascade)
+
+  @@unique([deckId, unregisteredCardId])
+  @@map("deck_unregistered_cards")
 }
 
 model Price {
@@ -177,6 +221,7 @@ model Deck {
   deckCards     DeckCard[]
   deckLikes     DeckLike[]
   deckTags      DeckTag[]
+  deckUnregisteredCards DeckUnregisteredCard[]
   user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("decks")

@@ -52,6 +52,12 @@ export default function Header() {
               カード検索
             </Link>
             <Link 
+              href="/sets" 
+              className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
+            >
+              セット
+            </Link>
+            <Link 
               href="/listings" 
               className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
             >

@@ -10,10 +10,28 @@ dotenv.config({ path: join(__dirname, '..', '.env.local') });
 
 const prisma = new PrismaClient();
 
+interface DeckCard {
+  id: string;
+  name: string;
+  count: number;
+}
+
+interface DeckData {
+  id: string;
+  name: string;
+  types?: string[];
+  cards?: DeckCard[];
+}
+
+interface GitHubFile {
+  name: string;
+  type: string;
+}
+
 /**
  * GitHubからデッキデータを取得
  */
-async function fetchDeckData(fileName: string): Promise<any[]> {
+async function fetchDeckData(fileName: string): Promise<DeckData[]> {
   const url = `https://raw.githubusercontent.com/PokemonTCG/pokemon-tcg-data/master/decks/en/${fileName}`;
   console.log(`📥 ${fileName} を取得中...`);
 
@@ -46,8 +64,8 @@ async function fetchDeckFileList(): Promise<string[]> {
 
     // .jsonファイルのみをフィルタリング
     const jsonFiles = files
-      .filter((file: any) => file.name.endsWith('.json'))
-      .map((file: any) => file.name);
+      .filter((file: GitHubFile) => file.name.endsWith('.json'))
+      .map((file: GitHubFile) => file.name);
 
     console.log(`📋 ${jsonFiles.length}個のデッキファイルが見つかりました`);
     return jsonFiles;
@@ -77,7 +95,7 @@ function transformDeckData(deck: { id: string; name: string; types?: string[]; c
 /**
  * デッキデータをデータベースにインポート
  */
-async function importDecks(decks: any[]): Promise<void> {
+async function importDecks(decks: DeckData[]): Promise<void> {
   console.log(`📦 ${decks.length}件のデッキをインポート開始`);
 
   // システムユーザーを作成または取得
@@ -124,9 +142,12 @@ async function importDecks(decks: any[]): Promise<void> {
 
       // デッキカードを追加
       for (const card of deck.cards) {
-        // CardテーブルからcardIdを取得（apiIdで検索）
+        // CardテーブルからcardIdを取得（cardNumberで検索）
         const dbCard = await prisma.card.findFirst({
-          where: { apiId: card.id }
+          where: {
+            cardNumber: card.id,
+            gameTitle: 'ポケモンカード'
+          }
         });
 
         if (dbCard) {
@@ -147,7 +168,45 @@ async function importDecks(decks: any[]): Promise<void> {
             }
           });
         } else {
-          console.warn(`⚠️  カード ${card.id} (${card.name}) が見つかりません`);
+          // 未登録カードの場合、UnregisteredCardに追加
+          const unregisteredCard = await prisma.unregisteredCard.upsert({
+            where: {
+              name_cardNumber_expansion: {
+                name: card.name,
+                cardNumber: card.id,
+                expansion: card.id.split('-')[0] || '',
+              },
+            },
+            update: {
+              updatedAt: new Date(),
+            },
+            create: {
+              name: card.name,
+              gameTitle: 'ポケモンカード',
+              cardNumber: card.id,
+              expansion: card.id.split('-')[0] || '',
+            },
+          });
+
+          // DeckUnregisteredCardに追加
+          await prisma.deckUnregisteredCard.upsert({
+            where: {
+              deckId_unregisteredCardId: {
+                deckId: createdDeck.id,
+                unregisteredCardId: unregisteredCard.id,
+              },
+            },
+            update: {
+              quantity: card.count,
+            },
+            create: {
+              deckId: createdDeck.id,
+              unregisteredCardId: unregisteredCard.id,
+              quantity: card.count,
+            },
+          });
+
+          console.warn(`⚠️  カード ${card.id} (${card.name}) がCardテーブルにないため、UnregisteredCardに登録しました`);
         }
       }
 

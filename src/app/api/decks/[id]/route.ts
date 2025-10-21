@@ -3,6 +3,19 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+// デッキ内のカードの共通インターフェース
+interface DeckCardItem {
+  id: string
+  name: string
+  gameTitle: string
+  imageUrl: string | null
+  rarity: string | null
+  cardNumber: string | null
+  expansion: string | null
+  effectText: string | null
+  quantity: number
+}
+
 // 個別デッキ取得
 export async function GET(
   request: NextRequest,
@@ -43,6 +56,19 @@ export async function GET(
           orderBy: {
             card: {
               name: 'asc',
+            },
+          },
+        },
+        deckUnregisteredCards: {
+          include: {
+            unregisteredCard: {
+              select: {
+                id: true,
+                name: true,
+                gameTitle: true,
+                cardNumber: true,
+                expansion: true,
+              },
             },
           },
         },
@@ -114,7 +140,7 @@ export async function GET(
       })
     }
 
-    // カードをタイプ別に分類
+    // カードをタイプ別に分類（登録済みカードと未登録カード両方）
     const cardsByType = deck.deckCards.reduce((acc, deckCard) => {
       const cardType = getCardType(deckCard.card.name, deckCard.card.effectText)
       if (!acc[cardType]) {
@@ -125,7 +151,22 @@ export async function GET(
         quantity: deckCard.quantity,
       })
       return acc
-    }, {} as Record<string, Array<typeof deck.deckCards[0]['card'] & { quantity: number }>>)
+    }, {} as Record<string, DeckCardItem[]>)
+
+    // 未登録カードも追加
+    deck.deckUnregisteredCards.forEach(deckUnregisteredCard => {
+      const cardType = getCardType(deckUnregisteredCard.unregisteredCard.name, null)
+      if (!cardsByType[cardType]) {
+        cardsByType[cardType] = []
+      }
+      cardsByType[cardType].push({
+        ...deckUnregisteredCard.unregisteredCard,
+        quantity: deckUnregisteredCard.quantity,
+        imageUrl: null,
+        rarity: null,
+        effectText: null,
+      })
+    })
 
     // 統計情報を計算
     const totalCards = deck.deckCards.reduce((sum, dc) => sum + dc.quantity, 0)

@@ -33,6 +33,7 @@ function transformCardData(card: any): any {
     artist: card.artist,
     subtypes: card.subtypes ? card.subtypes.join(', ') : null,
     releaseDate: null, // GitHubデータには含まれていない
+    setId: card.id.split('-')[0], // Extract setId from card id
 
     // 追加: Json型フィールド
     abilities: card.abilities || [],

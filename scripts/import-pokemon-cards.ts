@@ -59,13 +59,13 @@ function loadCardsFromFile(regulation: string): NormalizedCard[] {
       rarity: card.rarity || null,
       effectText: null, // 効果テキストは別途処理
       cardNumber: card.number || '',
-      expansion: card.set?.name || '',
+      expansion: card.setCode || '',
       regulation: regulation,
       cardType: card.supertype || '',
       hp: card.hp || null,
       types: Array.isArray(card.types) ? card.types.join(',') : card.types || null,
       evolveFrom: card.evolvesFrom || null,
-      releaseDate: card.set?.releaseDate || '',
+      releaseDate: '',
       artist: card.artist || null,
       subtypes: Array.isArray(card.subtypes) ? card.subtypes.join(',') : card.subtypes || null,
       flavorText: card.flavorText || null,
@@ -94,15 +94,18 @@ async function importCards(regulation: string): Promise<number> {
 
   for (const card of cards) {
     try {
-      // apiIdで既存カードをチェック
-      const existing = await prisma.card.findUnique({
-        where: { apiId: card.apiId },
+      // cardNumberで既存カードをチェック
+      const existing = await prisma.card.findFirst({
+        where: { 
+          cardNumber: card.cardNumber,
+          gameTitle: 'ポケモンカード'
+        },
       });
 
       if (existing) {
         // 既存カードを更新
         await prisma.card.update({
-          where: { apiId: card.apiId },
+          where: { id: existing.id },
           data: {
             name: card.name,
             imageUrl: card.imageUrl,
