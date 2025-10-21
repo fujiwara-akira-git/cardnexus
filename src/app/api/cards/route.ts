@@ -161,8 +161,8 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
 
-    // 未登録カードの場合
-    if (gameTitle === '未登録カード') {
+  // 未登録カードの場合（日本語・英語どちらも許容）
+  if (gameTitle === '未登録カード' || gameTitle === 'Unregistered Cards') {
       const where: Prisma.UnregisteredCardWhereInput = {}
       
       if (name) where.name = { contains: name, mode: 'insensitive' }
@@ -180,47 +180,47 @@ export async function GET(request: NextRequest) {
       })
 
       // レスポンスデータの整形
-      const formattedCards = unregisteredCards.map(card => ({
-        id: card.id,
-        name: card.name,
-        gameTitle: '未登録カード',
-        cardNumber: card.cardNumber,
-        expansion: card.expansion,
-        latestPrice: null,
-        activeListing: 0,
-        createdAt: card.createdAt,
-        // 未登録カードには以下のフィールドはない
-        nameJa: null,
-        expansionJa: null,
-        rarity: null,
-        effectText: null,
-        effectTextJa: null,
-        flavorText: null,
-        imageUrl: null,
-        regulationMark: null,
-        cardType: null,
-        cardTypeJa: null,
-        hp: null,
-        types: null,
-        typesJa: null,
-        evolveFrom: null,
-        evolveFromJa: null,
-        artist: null,
-        subtypes: null,
-        subtypesJa: null,
-        releaseDate: null,
-        apiId: null,
-        setId: null,
-        legalities: null,
-        attacks: null,
-        abilities: null,
-        weaknesses: null,
-        resistances: null,
-        retreatCost: null,
-        rules: null,
-        nationalPokedexNumbers: null,
-        source: null
-      }))
+        const formattedCards = unregisteredCards.map(card => ({
+          id: card.id,
+          name: card.name,
+          gameTitle: '未登録カード',
+          cardNumber: card.cardNumber,
+          expansion: card.expansion,
+          latestPrice: null,
+          activeListing: 0,
+          createdAt: card.createdAt,
+          // DBのrarityを返す
+          rarity: card.rarity,
+          nameJa: null,
+          expansionJa: null,
+          effectText: null,
+          effectTextJa: null,
+          flavorText: null,
+          imageUrl: null,
+          regulationMark: null,
+          cardType: null,
+          cardTypeJa: null,
+          hp: null,
+          types: null,
+          typesJa: null,
+          evolveFrom: null,
+          evolveFromJa: null,
+          artist: null,
+          subtypes: null,
+          subtypesJa: null,
+          releaseDate: null,
+          apiId: null,
+          setId: null,
+          legalities: null,
+          attacks: null,
+          abilities: null,
+          weaknesses: null,
+          resistances: null,
+          retreatCost: null,
+          rules: null,
+          nationalPokedexNumbers: null,
+          source: null
+        }))
 
       return NextResponse.json({
         success: true,

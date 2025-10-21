@@ -38,80 +38,80 @@ model User {
 }
 
 model Set {
-  id          String   @id
-  name        String
-  series      String
-  releaseDate String?
-  totalCards  Int?
+  id           String   @id
+  name         String
+  series       String
+  releaseDate  String?
+  totalCards   Int?
   printedTotal Int?
-  legalities  Json?
-  images      Json?
-  ptcgoCode   String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  cards       Card[]
+  legalities   Json?
+  images       Json?
+  ptcgoCode    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  cards        Card[]
 
   @@map("sets")
 }
 
 model Card {
-  id             String     @id @default(cuid())
-  name           String
-  gameTitle      String
-  imageUrl       String?
-  rarity         String?
-  effectText     String?
-  cardNumber     String?
-  expansion      String?
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-  apiId          String?    @unique
-  artist         String?
-  cardType       String?
-  cardTypeJa     String?
-  supertype      String?
-  effectTextJa   String?
-  flavorText     String?
-  setId          String?    // Keep for migration, will be removed after data migration
-  set            Set?       @relation(fields: [setId], references: [id])
-  evolveFrom     String?
-  evolveFromJa   String?
-  expansionJa    String?
-  hp             Int?
-  nameJa         String?
-  regulationMark String?
-  releaseDate    String?
-  subtypes       String?
-  subtypesJa     String?
-  types          String?
-  typesJa        String?
-  // --- JSON型フィールド追加 ---
-  attacks        Json?
-  abilities      Json?
-  weaknesses     Json?
-  resistances    Json?
-  retreatCost    Json?
-  rules          Json?
-  legalities     Json?
+  id                     String     @id @default(cuid())
+  name                   String
+  gameTitle              String
+  imageUrl               String?
+  rarity                 String?
+  effectText             String?
+  cardNumber             String?
+  expansion              String?
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
+  apiId                  String?    @unique
+  artist                 String?
+  cardType               String?
+  cardTypeJa             String?
+  supertype              String?
+  effectTextJa           String?
+  flavorText             String?
+  setId                  String?
+  evolveFrom             String?
+  evolveFromJa           String?
+  expansionJa            String?
+  hp                     Int?
+  nameJa                 String?
+  regulationMark         String?
+  releaseDate            String?
+  subtypes               String?
+  subtypesJa             String?
+  types                  String?
+  typesJa                String?
+  attacks                Json?
+  abilities              Json?
+  weaknesses             Json?
+  resistances            Json?
+  retreatCost            Json?
+  rules                  Json?
+  legalities             Json?
   nationalPokedexNumbers Json?
-  source String?
-  // --- 既存 ---
-  deckCards      DeckCard[]
-  listings       Listing[]
-  posts          Post[]     @relation("PostCards")
-  prices         Price[]
+  source                 String?
+  set                    Set?       @relation(fields: [setId], references: [id])
+  deckCards              DeckCard[]
+  listings               Listing[]
+  posts                  Post[]     @relation("PostCards")
+  prices                 Price[]
 
   @@map("cards")
 }
 
 model UnregisteredCard {
-  id             String   @id @default(cuid())
-  name           String
-  gameTitle      String
-  cardNumber     String?
-  expansion      String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                    String                 @id @default(cuid())
+  name                  String
+  gameTitle             String
+  cardNumber            String?
+  expansion             String?
+  types                 String?
+  rarity                String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
   deckUnregisteredCards DeckUnregisteredCard[]
 
   @@unique([name, cardNumber, expansion])
@@ -119,11 +119,11 @@ model UnregisteredCard {
 }
 
 model DeckUnregisteredCard {
-  id                 String   @id @default(cuid())
+  id                 String           @id @default(cuid())
   deckId             String
   unregisteredCardId String
-  quantity           Int      @default(1)
-  deck               Deck     @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  quantity           Int              @default(1)
+  deck               Deck             @relation(fields: [deckId], references: [id], onDelete: Cascade)
   unregisteredCard   UnregisteredCard @relation(fields: [unregisteredCardId], references: [id], onDelete: Cascade)
 
   @@unique([deckId, unregisteredCardId])
@@ -206,24 +206,24 @@ model Review {
 }
 
 model Deck {
-  id            String     @id @default(cuid())
-  userId        String
-  name          String
-  description   String?
-  gameTitle     String
-  format        String?
-  types         String?    // デッキのタイプ（JSON配列を文字列化）
-  isPublic      Boolean    @default(false)
-  likeCount     Int        @default(0)
-  viewCount     Int        @default(0)
-  coverImageUrl String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  deckCards     DeckCard[]
-  deckLikes     DeckLike[]
-  deckTags      DeckTag[]
+  id                    String                 @id @default(cuid())
+  userId                String
+  name                  String
+  description           String?
+  gameTitle             String
+  format                String?
+  types                 String?
+  isPublic              Boolean                @default(false)
+  likeCount             Int                    @default(0)
+  viewCount             Int                    @default(0)
+  coverImageUrl         String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  deckCards             DeckCard[]
+  deckLikes             DeckLike[]
+  deckTags              DeckTag[]
   deckUnregisteredCards DeckUnregisteredCard[]
-  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("decks")
 }

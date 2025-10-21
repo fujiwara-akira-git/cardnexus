@@ -14,6 +14,7 @@ interface DeckCard {
   id: string;
   name: string;
   count: number;
+  rarity?: string;
 }
 
 interface DeckData {
@@ -27,10 +28,6 @@ interface GitHubFile {
   name: string;
   type: string;
 }
-
-/**
- * GitHubからデッキデータを取得
- */
 async function fetchDeckData(fileName: string): Promise<DeckData[]> {
   const url = `https://raw.githubusercontent.com/PokemonTCG/pokemon-tcg-data/master/decks/en/${fileName}`;
   console.log(`📥 ${fileName} を取得中...`);
@@ -78,7 +75,7 @@ async function fetchDeckFileList(): Promise<string[]> {
 /**
  * デッキデータをPrismaのDeck形式に変換
  */
-function transformDeckData(deck: { id: string; name: string; types?: string[]; cards?: { id: string; name: string; count: number }[] }, userId: string) {
+function transformDeckData(deck: { id: string; name: string; types?: string[]; cards?: { id: string; name: string; count: number; rarity?: string }[] }, userId: string) {
   return {
     id: deck.id,
     name: deck.name,
@@ -185,6 +182,8 @@ async function importDecks(decks: DeckData[]): Promise<void> {
               gameTitle: 'ポケモンカード',
               cardNumber: card.id,
               expansion: card.id.split('-')[0] || '',
+              types: null, // 後で手動で設定
+              rarity: card.rarity || null, // デッキデータからrarityを反映
             },
           });
 

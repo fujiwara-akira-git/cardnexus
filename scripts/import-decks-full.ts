@@ -161,8 +161,50 @@ async function importDecks(decks: any[]): Promise<void> {
             });
             linkedCards++;
           } else {
-            console.warn(`⚠️  カード ${card.id} (${card.name}) が見つかりません - スキップ`);
+            // カードが見つからない場合は UnregisteredCard に登録し、DeckUnregisteredCard を作成
+            const expansion = (card.id || '').split('-')[0] || '';
+
+              const unregisteredCard = await prisma.unregisteredCard.upsert({
+              where: {
+                name_cardNumber_expansion: {
+                  name: card.name,
+                  cardNumber: card.id,
+                  expansion: expansion,
+                }
+              },
+                update: {
+                  updatedAt: new Date(),
+                  rarity: (card as any).rarity || null,
+                },
+                create: {
+                  name: card.name,
+                  gameTitle: 'ポケモンカード',
+                  cardNumber: card.id,
+                  expansion: expansion,
+                  types: null,
+                  rarity: (card as any).rarity || null,
+                }
+            });
+
+            await prisma.deckUnregisteredCard.upsert({
+              where: {
+                deckId_unregisteredCardId: {
+                  deckId: createdDeck.id,
+                  unregisteredCardId: unregisteredCard.id,
+                }
+              },
+              update: {
+                quantity: card.count,
+              },
+              create: {
+                deckId: createdDeck.id,
+                unregisteredCardId: unregisteredCard.id,
+                quantity: card.count,
+              }
+            });
+
             missingCards++;
+            console.warn(`⚠️  カード ${card.id} (${card.name}) が見つからないため UnregisteredCard に登録しました`);
           }
         } catch (error) {
           console.error(`❌ カード ${card.id} のリンクに失敗:`, error);

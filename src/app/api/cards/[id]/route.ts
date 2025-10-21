@@ -225,10 +225,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           expansion: unregisteredCard.expansion,
           createdAt: unregisteredCard.createdAt,
           updatedAt: unregisteredCard.createdAt, // createdAtを使用
-          // 以下は未登録カードにはないフィールド
+    // 以下は未登録カードにはないフィールド
           nameJa: null,
           imageUrl: null,
-          rarity: null,
+          rarity: unregisteredCard.rarity,
           effectText: null,
           flavorText: null,
           setId: null,

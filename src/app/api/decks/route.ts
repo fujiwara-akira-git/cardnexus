@@ -1,104 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { Prisma } from '@prisma/client'
+import * as dotenv from 'dotenv'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
-// デッキ一覧取得・作成
+// .env.localを明示的に読み込み
+dotenv.config({ path: process.cwd() + '/.env.local' })
+
+// デッキ一覧取得
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '12')
-    const gameTitle = searchParams.get('gameTitle')
-    const format = searchParams.get('format')
-    const search = searchParams.get('search')
-    const sortBy = searchParams.get('sortBy') || 'createdAt'
-    const sortOrder = searchParams.get('sortOrder') || 'desc'
-    const userId = searchParams.get('userId') // 特定ユーザーのデッキのみ取得
+    console.log('=== SIMPLE DECKS API ===');
+    console.log('DATABASE_URL:', process.env.DATABASE_URL?.substring(0, 50));
 
-    const skip = (page - 1) * limit
+    // シンプルにデッキ数を取得
+    const total = await prisma.deck.count();
+    console.log('Total decks found:', total);
 
-    // 検索条件を構築
-    const where: {
-      isPublic?: boolean
-      userId?: string
-      gameTitle?: string
-      format?: string
-      OR?: Array<{ name?: { contains: string; mode: 'insensitive' }; description?: { contains: string; mode: 'insensitive' } }>
-    } = {
-      isPublic: true, // 公開デッキのみ（ユーザー指定時は除外）
-    }
-
-    if (userId) {
-      // 特定ユーザーのデッキの場合は非公開も含める
-      where.userId = userId
-      delete where.isPublic
-    }
-
-    if (gameTitle) {
-      where.gameTitle = gameTitle
-    }
-
-    if (format) {
-      where.format = format
-    }
-
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-      ]
-    }
-
-    // ソート条件
-    let orderBy: Record<string, 'asc' | 'desc'> = {}
-    if (sortBy === 'popularity') {
-      orderBy = { likeCount: sortOrder as 'asc' | 'desc' }
-    } else if (sortBy === 'views') {
-      orderBy = { viewCount: sortOrder as 'asc' | 'desc' }
-    } else {
-      orderBy = { [sortBy]: sortOrder as 'asc' | 'desc' }
-    }
-
-    // デッキ取得
-    const [decks, total] = await Promise.all([
-      prisma.deck.findMany({
-        where,
-        orderBy,
-        skip,
-        take: limit,
-        include: {
-          user: {
-            select: {
-              id: true,
-              username: true,
-              profileImageUrl: true,
-            },
-          },
-          deckCards: {
-            include: {
-              card: {
-                select: {
-                  id: true,
-                  name: true,
-                  imageUrl: true,
-                  rarity: true,
-                },
-              },
-            },
-          },
-          deckTags: true,
-          _count: {
-            select: {
-              deckLikes: true,
-              deckCards: true,
-            },
+    // デッキデータを取得（最初の5件）
+    const decks = await prisma.deck.findMany({
+      take: 5,
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            profileImageUrl: true,
           },
         },
-      }),
-      prisma.deck.count({ where }),
-    ])
+        deckTags: true,
+        _count: {
+          select: {
+            deckLikes: true,
+            deckCards: true,
+          },
+        },
+      },
+    });
 
     // レスポンス用に整形
     const formattedDecks = decks.map(deck => ({
@@ -117,25 +55,26 @@ export async function GET(request: NextRequest) {
       cardCount: deck._count.deckCards,
       totalLikes: deck._count.deckLikes,
       tags: deck.deckTags.map(tag => tag.tagName),
-      // デッキのメインカード（最初の4枚）を表示用に取得
-      sampleCards: deck.deckCards.slice(0, 4).map(dc => ({
-        ...dc.card,
-        quantity: dc.quantity,
-      })),
-    }))
+      sampleCards: [],
+    }));
 
     return NextResponse.json({
       success: true,
       data: {
         decks: formattedDecks,
         pagination: {
-          currentPage: page,
-          totalPages: Math.ceil(total / limit),
+          currentPage: 1,
+          totalPages: Math.ceil(total / 12),
           totalItems: total,
-          hasNext: page * limit < total,
-          hasPrev: page > 1,
+          hasNext: total > 5,
+          hasPrev: false,
         },
       },
+      debug: {
+        total: total,
+        decksReturned: formattedDecks.length,
+        databaseUrl: process.env.DATABASE_URL?.substring(0, 50)
+      }
     })
   } catch (error) {
     console.error('デッキ取得エラー:', error)
@@ -152,7 +91,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// デッキ作成
+// デッキ作成（既存のPOSTメソッドを保持）
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
