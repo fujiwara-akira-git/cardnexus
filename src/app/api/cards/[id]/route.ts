@@ -135,6 +135,20 @@ function decodeTextFields(obj: unknown): unknown {
   return obj;
 }
 
+// If a DB field sometimes stores JSON as a string, try to parse it
+function parseJsonIfString(val: unknown): unknown {
+  if (typeof val === 'string') {
+    try {
+      return JSON.parse(val);
+    } catch {
+      return val;
+    }
+  }
+  return val;
+}
+
+// (server-side translation fallback removed)
+
 // カード詳細情報の取得
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -320,12 +334,27 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       releaseDate: card.releaseDate,
       createdAt: card.createdAt,
       // --- 追加: JSONフィールド ---
-      abilities: decodeTextFields(card.abilities),
-      attacks: decodeTextFields(card.attacks),
+      abilities: (() => {
+        const parsed = decodeTextFields(card.abilities);
+        if (!parsed) return parsed;
+        try {
+          return parsed;
+        } catch { return parsed; }
+      })(),
+      attacks: (() => {
+        const parsed = decodeTextFields(card.attacks);
+        if (!parsed) return parsed;
+        try {
+          return parsed;
+        } catch { return parsed; }
+      })(),
       weaknesses: decodeTextFields(card.weaknesses),
       resistances: decodeTextFields(card.resistances),
       retreatCost: decodeTextFields(card.retreatCost),
-      legalities: decodeTextFields(card.legalities),
+      legalities: (() => {
+        const parsed = parseJsonIfString(card.legalities);
+        return decodeTextFields(parsed);
+      })(),
       rules: decodeTextFields(card.rules),
       nationalPokedexNumbers: card.nationalPokedexNumbers,
       priceStats,

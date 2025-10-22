@@ -133,6 +133,18 @@ function decodeTextFields(obj: unknown): unknown {
   return obj;
 }
 
+// If a DB field sometimes stores JSON as a string, try to parse it
+function parseJsonIfString(val: unknown): unknown {
+  if (typeof val === 'string') {
+    try {
+      return JSON.parse(val);
+    } catch {
+      return val;
+    }
+  }
+  return val;
+}
+
 // カード一覧の取得
 export async function GET(request: NextRequest) {
   try {
@@ -341,8 +353,14 @@ export async function GET(request: NextRequest) {
       latestPrice: card.prices[0]?.price || null,
       activeListing: card._count.listings,
       createdAt: card.createdAt,
-      // JSONフィールドのデコード
-      legalities: card.legalities ? Object.entries(card.legalities).map(([key, value]) => `${key}: ${value}`).join(', ') : null,
+      // JSONフィールドのデコード (keep structured)
+      legalities: (() => {
+        const parsed = parseJsonIfString(card.legalities);
+        if (!parsed) return null;
+        // If object, return decoded object; otherwise decode string
+        if (typeof parsed === 'object') return decodeTextFields(parsed as unknown);
+        return decodeTextFields(parsed as unknown);
+      })(),
       attacks: decodeTextFields(card.attacks),
       abilities: decodeTextFields(card.abilities),
       weaknesses: decodeTextFields(card.weaknesses),
