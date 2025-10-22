@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
 
@@ -11,8 +12,8 @@ interface SetData {
   releaseDate: string;
   total: number;
   printedTotal?: number;
-  legalities: any;
-  images: any;
+  legalities: unknown;
+  images: unknown;
   ptcgoCode?: string;
 }
 
@@ -39,8 +40,8 @@ async function importSets() {
           releaseDate: setData.releaseDate,
           totalCards: setData.total,
           printedTotal: setData.printedTotal || null,
-          legalities: setData.legalities,
-          images: setData.images,
+          legalities: setData.legalities as Prisma.InputJsonValue,
+          images: setData.images as Prisma.InputJsonValue,
           ptcgoCode: setData.ptcgoCode || null,
         },
         create: {
@@ -50,8 +51,8 @@ async function importSets() {
           releaseDate: setData.releaseDate,
           totalCards: setData.total,
           printedTotal: setData.printedTotal || null,
-          legalities: setData.legalities,
-          images: setData.images,
+          legalities: setData.legalities as Prisma.InputJsonValue,
+          images: setData.images as Prisma.InputJsonValue,
           ptcgoCode: setData.ptcgoCode || null,
         },
       });

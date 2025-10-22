@@ -456,7 +456,9 @@ function getCardType(cardName: string, effectText?: string | null): string {
 }
 
 // ヘルパー関数：平均コストを計算（仮実装）
-function calculateAverageCost(_deckCards: Array<{ quantity: number }>): number {
-  // 実際の実装では、カードのコスト情報を元に計算
-  return 2.5
+function calculateAverageCost(deckCards: Array<{ quantity: number }>): number {
+  // 仮実装: 単純に枚数の平均（将来的にはカードのコスト情報を使用）
+  if (!deckCards || deckCards.length === 0) return 0
+  const total = deckCards.reduce((s, c) => s + (c.quantity || 0), 0)
+  return total / deckCards.length
 }

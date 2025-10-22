@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 
 const localPrisma = new PrismaClient({
   datasources: {
@@ -45,15 +46,15 @@ async function migrateCardsToNeon() {
           hp: card.hp,
           types: card.types,
           evolveFrom: card.evolveFrom,
-          rules: card.rules,
-          attacks: card.attacks,
-          weaknesses: card.weaknesses,
-          resistances: card.resistances,
-          retreatCost: card.retreatCost,
+          rules: card.rules as Prisma.InputJsonValue,
+          attacks: card.attacks as Prisma.InputJsonValue,
+          weaknesses: card.weaknesses as Prisma.InputJsonValue,
+          resistances: card.resistances as Prisma.InputJsonValue,
+          retreatCost: card.retreatCost as Prisma.InputJsonValue,
           artist: card.artist,
           flavorText: card.flavorText,
-          nationalPokedexNumbers: card.nationalPokedexNumbers,
-          legalities: card.legalities,
+          nationalPokedexNumbers: card.nationalPokedexNumbers as Prisma.InputJsonValue,
+          legalities: card.legalities as Prisma.InputJsonValue,
           source: card.source,
           apiId: card.apiId,
           cardType: card.cardType,
@@ -66,7 +67,7 @@ async function migrateCardsToNeon() {
           releaseDate: card.releaseDate,
           subtypesJa: card.subtypesJa,
           typesJa: card.typesJa,
-          abilities: card.abilities,
+          abilities: card.abilities as Prisma.InputJsonValue,
           setId: card.setId,
           createdAt: card.createdAt,
           updatedAt: card.updatedAt,

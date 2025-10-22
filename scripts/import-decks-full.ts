@@ -20,7 +20,7 @@ const prisma = new PrismaClient({
 /**
  * GitHubからデッキデータを取得
  */
-async function fetchDeckData(fileName: string): Promise<any[]> {
+async function fetchDeckData(fileName: string): Promise<Record<string, unknown>[]> {
   const url = `https://raw.githubusercontent.com/PokemonTCG/pokemon-tcg-data/master/decks/en/${fileName}`;
   console.log(`📥 ${fileName} を取得中...`);
 
@@ -29,8 +29,8 @@ async function fetchDeckData(fileName: string): Promise<any[]> {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    const data = await response.json();
-    return Array.isArray(data) ? data : [data];
+  const data = await response.json();
+  return Array.isArray(data) ? (data as Record<string, unknown>[]) : ([data] as Record<string, unknown>[]);
   } catch (error) {
     console.error(`❌ ${fileName} の取得に失敗:`, error);
     return [];
@@ -49,12 +49,14 @@ async function fetchDeckFileList(): Promise<string[]> {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    const files = await response.json();
+    const files = (await response.json()) as unknown;
 
     // .jsonファイルのみをフィルタリング
-    const jsonFiles = files
-      .filter((file: any) => file.name.endsWith('.json'))
-      .map((file: any) => file.name);
+    const jsonFiles = Array.isArray(files)
+      ? files
+          .filter((file) => typeof (file as { name?: unknown }).name === 'string' && ((file as { name: string }).name.endsWith('.json')))
+          .map((file) => (file as { name: string }).name)
+      : [];
 
     console.log(`📋 ${jsonFiles.length}個のデッキファイルが見つかりました`);
     return jsonFiles;
@@ -84,7 +86,7 @@ function transformDeckData(deck: { id: string; name: string; types?: string[]; c
 /**
  * デッキデータをデータベースにインポート
  */
-async function importDecks(decks: any[]): Promise<void> {
+async function importDecks(decks: Record<string, unknown>[]): Promise<void> {
   console.log(`📦 ${decks.length}件のデッキをインポート開始`);
 
   // システムユーザーを作成または取得
@@ -107,7 +109,9 @@ async function importDecks(decks: any[]): Promise<void> {
 
   for (const deckData of decks) {
     try {
-      const deck = transformDeckData(deckData, systemUser.id);
+      // Narrow the incoming deckData shape minimally for downstream usage
+      const src = deckData as unknown as { id: string; name: string; types?: string[]; cards?: Array<{ id: string; name: string; count: number; rarity?: string }> };
+      const deck = transformDeckData(src, systemUser.id);
 
       // デッキを作成または更新
       const createdDeck = await prisma.deck.upsert({
@@ -174,7 +178,7 @@ async function importDecks(decks: any[]): Promise<void> {
               },
                 update: {
                   updatedAt: new Date(),
-                  rarity: (card as any).rarity || null,
+                  rarity: ((card as { rarity?: string })?.rarity) || null,
                 },
                 create: {
                   name: card.name,
@@ -182,7 +186,7 @@ async function importDecks(decks: any[]): Promise<void> {
                   cardNumber: card.id,
                   expansion: expansion,
                   types: null,
-                  rarity: (card as any).rarity || null,
+                  rarity: ((card as { rarity?: string })?.rarity) || null,
                 }
             });
 

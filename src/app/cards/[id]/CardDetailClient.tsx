@@ -8,86 +8,12 @@ import Link from "next/link";
 // for simplicity in this client component accept any-shaped card object
 type CardData = Record<string, any>;
 
-const getPreferredValue = (obj: Record<string, any> | undefined, key: string, useJapanese: boolean) => {
+const getPreferredValue = (obj: Record<string, any> | undefined, key: string) => {
   if (!obj) return undefined;
-  const base = obj[key];
-  if (useJapanese) {
-    const jaKey = key.endsWith('Ja') ? key : `${key}Ja`;
-    const ja = obj[jaKey];
-    if (ja !== undefined && ja !== null) {
-      // If base is missing, prefer the ja value
-      if (base === undefined || base === null) return ja;
-      // If base is a string, only accept ja when it's a non-empty string
-      if (typeof base === 'string' && typeof ja === 'string' && ja.trim() !== '') return ja;
-      // If base is an array, only accept ja when it's also an array
-      if (Array.isArray(base) && Array.isArray(ja)) return ja;
-      // For other types (numbers, booleans, objects), don't switch to ja
-    }
-  }
-  return base;
+  return obj[key];
 };
 
-// フィールド名の日本語マッピング
-const fieldLabels: Record<string, string> = {
-  id: 'ID',
-  name: '名前',
-  nameJa: '名前（日本語）',
-  gameTitle: 'ゲームタイトル',
-  cardNumber: 'カード番号',
-  expansion: '拡張パック',
-  expansionJa: '拡張パック（日本語）',
-  rarity: 'レアリティ',
-  effectText: '効果テキスト',
-  effectTextJa: '効果テキスト（日本語）',
-  flavorText: 'フレーバーテキスト',
-  setId: 'セットID',
-  imageUrl: '画像URL',
-  regulationMark: 'レギュレーションマーク',
-  cardType: 'カードタイプ',
-  cardTypeJa: 'カードタイプ（日本語）',
-  supertype: 'スーパータイプ',
-  hp: 'HP',
-  types: 'タイプ',
-  typesJa: 'タイプ（日本語）',
-  evolveFrom: '進化元',
-  evolveFromJa: '進化元（日本語）',
-  artist: 'イラストレーター',
-  subtypes: 'サブタイプ',
-  subtypesJa: 'サブタイプ（日本語）',
-  releaseDate: '発売日',
-  createdAt: '作成日時',
-  abilities: '特性',
-  attacks: 'ワザ',
-  weaknesses: '弱点',
-  resistances: '抵抗力',
-  retreatCost: 'にげるコスト',
-  legalities: 'リーガリティ',
-  rules: 'ルール',
-  nationalPokedexNumbers: '全国図鑑番号',
-  priceStats: '価格統計',
-  priceHistory: '価格履歴',
-  activeListings: 'アクティブ出品',
-  latest: '最新価格',
-  average: '平均価格',
-  min: '最低価格',
-  max: '最高価格',
-  price: '価格',
-  source: 'ソース',
-  condition: '状態',
-  recordedAt: '記録日時',
-  type: 'タイプ',
-  value: '値',
-  cost: 'コスト',
-  damage: 'ダメージ',
-  text: 'テキスト',
-  quantity: '数量',
-  description: '説明',
-  user: 'ユーザー',
-  username: 'ユーザー名',
-  rating: '評価',
-  reviewCount: 'レビュー数',
-  expiresAt: '有効期限',
-};
+// Japanese labels removed — English-only UI
 
 // English labels (default)
 const fieldLabelsEn: Record<string, string> = {
@@ -151,14 +77,14 @@ const fieldLabelsEn: Record<string, string> = {
   expiresAt: 'Expires At',
 };
 
-function renderJsonTable(data: Record<string, unknown>, useJapanese: boolean): React.JSX.Element {
+function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
   // use getPreferredValue(...) defined above
-  const labels = useJapanese ? fieldLabels : fieldLabelsEn;
-  const textKeyPriority = ['textJa','text','effectTextJa','effectText','effectJa','effect','descriptionJa','description','nameJa','name'];
+  const labels = fieldLabelsEn;
+  const textKeyPriority = ['text','effectText','description','name'];
 
   const formatValue = (val: any): string => {
     if (val === null || val === undefined) return '';
-    if (typeof val === 'boolean') return val ? 'はい' : 'いいえ';
+    if (typeof val === 'boolean') return val ? 'Yes' : 'No';
     if (typeof val === 'string' || typeof val === 'number') return String(val);
     if (Array.isArray(val)) {
       return val.map(v => formatValue(v)).join(', ');
@@ -167,10 +93,8 @@ function renderJsonTable(data: Record<string, unknown>, useJapanese: boolean): R
       // prefer common nested text keys
       for (const k of textKeyPriority) {
         if (Object.prototype.hasOwnProperty.call(val, k)) {
-          const candidate = getPreferredValue(val as Record<string, any>, k, useJapanese);
+          const candidate = getPreferredValue(val as Record<string, any>, k);
           if (candidate !== undefined && candidate !== null && String(candidate).trim() !== '') {
-            // If user requested Japanese but only English exists, apply a small heuristic translator
-            // client-side Japanese fallback removed — return the candidate as-is
             return String(candidate);
           }
         }
@@ -187,14 +111,14 @@ function renderJsonTable(data: Record<string, unknown>, useJapanese: boolean): R
   const renderArrayAsTable = (key: string, array: unknown[], label: string): React.ReactNode => {
     if (!Array.isArray(array)) return null;
 
-    if (array.length === 0) {
+          if (array.length === 0) {
       return (
         <div className="mb-6">
           <h4 className="text-md font-medium mb-2">{label}</h4>
           <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
             <tbody>
               <tr>
-                <td className={`px-4 py-2 text-gray-500 ${['Abilities','特性','Weaknesses','弱点','Attacks','ワザ'].includes(label) ? 'text-left' : 'text-center'}`}>{useJapanese ? 'なし' : 'None'}</td>
+                <td className={`px-4 py-2 text-gray-500 ${['Abilities','Weaknesses','Attacks'].includes(label) ? 'text-left' : 'text-center'}`}>None</td>
               </tr>
             </tbody>
           </table>
@@ -217,7 +141,7 @@ function renderJsonTable(data: Record<string, unknown>, useJapanese: boolean): R
         baseSet.add(k);
       }
     }
-    const columns = Array.from(baseSet).filter(col => col !== 'supertype');
+  const columns = Array.from(baseSet).filter(col => col !== 'supertype');
 
     return (
       <div className="mb-6">
@@ -236,9 +160,9 @@ function renderJsonTable(data: Record<string, unknown>, useJapanese: boolean): R
             {array.map((item, index) => (
               <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                   {columns.map(col => {
-                  const value = getPreferredValue(item as Record<string, unknown>, col, useJapanese);
+                  const value = getPreferredValue(item as Record<string, unknown>, col);
                   const displayValue = formatValue(value);
-                  const leftAlign = ['Abilities','特性','Weaknesses','弱点','Attacks','ワザ'].includes(label);
+                  const leftAlign = ['Abilities','Weaknesses','Attacks'].includes(label);
                   return (
                     <td key={col} className={`px-4 py-2 text-gray-900 ${leftAlign ? 'text-left' : ''}`}>{displayValue}</td>
                   );
@@ -261,7 +185,7 @@ function renderJsonTable(data: Record<string, unknown>, useJapanese: boolean): R
 
     priorityFields.forEach(key => {
   if (obj.hasOwnProperty(key)) {
-  const value = getPreferredValue(obj as Record<string, unknown>, key, useJapanese);
+  const value = getPreferredValue(obj as Record<string, unknown>, key);
     const fullKey = prefix ? `${prefix}.${key}` : key;
   const label = labels[key] || key;
         if (value === null || value === undefined) {
@@ -292,7 +216,7 @@ function renderJsonTable(data: Record<string, unknown>, useJapanese: boolean): R
             entries.forEach(([subKey]) => {
               const subFullKey = `${fullKey}.${subKey}`;
               const subLabel = labels[subKey] || subKey;
-              const effectiveSubValue = getPreferredValue(nestedObj as Record<string, unknown>, subKey, useJapanese);
+            const effectiveSubValue = getPreferredValue(nestedObj as Record<string, unknown>, subKey);
               if (effectiveSubValue !== null && effectiveSubValue !== undefined) {
                 if (typeof effectiveSubValue === 'boolean') {
                   result.push({ key: subFullKey, value: effectiveSubValue ? 'はい' : 'いいえ', label: `${label} - ${subLabel}` });
@@ -305,7 +229,7 @@ function renderJsonTable(data: Record<string, unknown>, useJapanese: boolean): R
                 } else if (typeof effectiveSubValue === 'object') {
                   const subEntries = Object.entries(effectiveSubValue as Record<string, unknown>);
                   if (subEntries.length > 0) {
-                    const summary = subEntries.map(([k, v]) => `${labels[k] || k}: ${String(getPreferredValue(subEntriesToObj(subEntries), k, useJapanese) ?? v)}`).join(', ');
+                    const summary = subEntries.map(([k, v]) => `${labels[k] || k}: ${String(getPreferredValue(subEntriesToObj(subEntries), k) ?? v)}`).join(', ');
                     result.push({ key: subFullKey, value: summary, label: `${label} - ${subLabel}` });
                   }
                 }
@@ -315,7 +239,7 @@ function renderJsonTable(data: Record<string, unknown>, useJapanese: boolean): R
             const importantFields = ['name', 'price', 'type', 'value', 'username'];
             const importantData = entries.filter(([k]) => importantFields.includes(k));
             if (importantData.length > 0) {
-              const summary = importantData.map(([k, v]) => `${labels[k] || k}: ${String(getPreferredValue(nestedObj as Record<string, unknown>, k, useJapanese) ?? v)}`).join(', ');
+              const summary = importantData.map(([k, v]) => `${labels[k] || k}: ${String(getPreferredValue(nestedObj as Record<string, unknown>, k) ?? v)}`).join(', ');
               result.push({ key: fullKey, value: summary, label });
             } else {
               result.push({ key: fullKey, value: `${entries.length}個のフィールド`, label });
@@ -327,7 +251,7 @@ function renderJsonTable(data: Record<string, unknown>, useJapanese: boolean): R
       }
     });
 
-    Object.entries(obj).forEach(([key, value]) => {
+  Object.entries(obj).forEach(([key, value]) => {
       const excludedFields = ['id', 'gameTitle', 'rarity', 'hp', 'types', 'regulationMark', 'artist', 'name', 'subtypes', 'cardNumber', 'expansion', 'effectText', 'effectTextJa', 'cardType', 'cardTypeJa', 'evolveFrom', 'evolveFromJa', 'nationalPokedexNumbers', 'legalities', 'abilities', 'flavorText', 'apiId', 'setId', 'supertype'];
       if (excludedFields.includes(key) || priorityFields.includes(key)) {
         return;
@@ -365,7 +289,7 @@ function renderJsonTable(data: Record<string, unknown>, useJapanese: boolean): R
           entries.forEach(([subKey]) => {
             const subFullKey = `${fullKey}.${subKey}`;
             const subLabel = labels[subKey] || subKey;
-            const effectiveSubValue = getPreferredValue(nestedObj, subKey, useJapanese);
+            const effectiveSubValue = getPreferredValue(nestedObj, subKey);
             if (effectiveSubValue !== null && effectiveSubValue !== undefined) {
               if (typeof effectiveSubValue === 'boolean') {
                 result.push({ key: subFullKey, value: effectiveSubValue ? 'はい' : 'いいえ', label: `${label} - ${subLabel}` });
@@ -378,7 +302,7 @@ function renderJsonTable(data: Record<string, unknown>, useJapanese: boolean): R
               } else if (typeof effectiveSubValue === 'object') {
                 const subEntries = Object.entries(effectiveSubValue as Record<string, unknown>);
                 if (subEntries.length > 0) {
-                  const summary = subEntries.map(([k, v]) => `${labels[k] || k}: ${String(getPreferredValue(subEntriesToObj(subEntries), k, useJapanese) ?? v)}`).join(', ');
+                  const summary = subEntries.map(([k, v]) => `${labels[k] || k}: ${String(getPreferredValue(subEntriesToObj(subEntries), k) ?? v)}`).join(', ');
                   result.push({ key: subFullKey, value: summary, label: `${label} - ${subLabel}` });
                 }
               }
@@ -388,10 +312,10 @@ function renderJsonTable(data: Record<string, unknown>, useJapanese: boolean): R
           const importantFields = ['name', 'price', 'type', 'value', 'username'];
           const importantData = entries.filter(([k]) => importantFields.includes(k));
           if (importantData.length > 0) {
-              const summary = importantData.map(([k, v]) => `${labels[k] || k}: ${String(getPreferredValue(nestedObj as Record<string, unknown>, k, useJapanese) ?? v)}`).join(', ');
+              const summary = importantData.map(([k, v]) => `${labels[k] || k}: ${String(getPreferredValue(nestedObj as Record<string, unknown>, k) ?? v)}`).join(', ');
             result.push({ key: fullKey, value: summary, label });
           } else {
-            result.push({ key: fullKey, value: `${entries.length}個のフィールド`, label });
+              result.push({ key: fullKey, value: `${entries.length} fields`, label });
           }
         }
       } else {
@@ -414,61 +338,60 @@ function renderJsonTable(data: Record<string, unknown>, useJapanese: boolean): R
     <div>
       {/* render arrays and other sections (always show even if empty) */}
       {(() => {
-      const abilities = Array.isArray((effectiveData as any).abilities) ? (effectiveData as any).abilities : [];
-        return renderArrayAsTable('abilities', abilities, useJapanese ? '特性' : 'Abilities');
+        const abilities = Array.isArray((effectiveData as any).abilities) ? (effectiveData as any).abilities : [];
+        return renderArrayAsTable('abilities', abilities, 'Abilities');
       })()}
       {(() => {
   const attacks = Array.isArray((effectiveData as any).attacks) ? (effectiveData as any).attacks : [];
-  return renderArrayAsTable('attacks', attacks, useJapanese ? 'ワザ' : 'Attacks');
-      })()}
+  return renderArrayAsTable('attacks', attacks, 'Attacks');
+    })()}
       {(() => {
-  const weaknesses = Array.isArray((effectiveData as any).weaknesses) ? (effectiveData as any).weaknesses : [];
-  return renderArrayAsTable('weaknesses', weaknesses, useJapanese ? '弱点' : 'Weaknesses');
+        const weaknesses = Array.isArray((effectiveData as any).weaknesses) ? (effectiveData as any).weaknesses : [];
+        return renderArrayAsTable('weaknesses', weaknesses, 'Weaknesses');
       })()}
 
       {/* always show effectText (効果) */}
       {(() => {
-  const effect = getPreferredValue(effectiveData as Record<string, any>, 'effectText', useJapanese) as string | undefined;
+        const effect = getPreferredValue(effectiveData as Record<string, any>, 'effectText') as string | undefined;
         return (
           <div className="mb-6">
-            <h4 className="text-md font-medium mb-2">{useJapanese ? '効果' : 'Effect'}</h4>
-            <div className="p-3 bg-white border border-gray-200 rounded text-sm text-gray-900">{effect && typeof effect === 'string' && effect.trim() !== '' ? effect : (useJapanese ? 'なし' : 'None')}</div>
+            <h4 className="text-md font-medium mb-2">Effect</h4>
+            <div className="p-3 bg-white border border-gray-200 rounded text-sm text-gray-900">{effect && typeof effect === 'string' && effect.trim() !== '' ? effect : 'None'}</div>
           </div>
         );
       })()}
 
       {/* always show flavorText (フレーバーテキスト) */}
       {(() => {
-  const flavor = getPreferredValue(effectiveData as Record<string, any>, 'flavorText', useJapanese) as string | undefined;
+        const flavor = getPreferredValue(effectiveData as Record<string, any>, 'flavorText') as string | undefined;
         return (
           <div className="mb-6">
-            <h4 className="text-md font-medium mb-2">{useJapanese ? 'フレーバーテキスト' : 'Flavor Text'}</h4>
-            <div className="p-3 bg-white border border-gray-200 rounded text-sm text-gray-900">{flavor && typeof flavor === 'string' && flavor.trim() !== '' ? flavor : (useJapanese ? 'なし' : 'None')}</div>
+            <h4 className="text-md font-medium mb-2">Flavor Text</h4>
+            <div className="p-3 bg-white border border-gray-200 rounded text-sm text-gray-900">{flavor && typeof flavor === 'string' && flavor.trim() !== '' ? flavor : 'None'}</div>
           </div>
         );
       })()}
 
       {/* always show resistances, legalities, retreatCost, rules */}
       {(() => {
-  const resist = getPreferredValue(effectiveData as Record<string, any>, 'resistances', useJapanese);
-  const legal = getPreferredValue(effectiveData as Record<string, any>, 'legalities', useJapanese);
-  const retreat = getPreferredValue(effectiveData as Record<string, any>, 'retreatCost', useJapanese);
-  const rules = getPreferredValue(effectiveData as Record<string, any>, 'rules', useJapanese);
+        const resist = getPreferredValue(effectiveData as Record<string, any>, 'resistances');
+        const legal = getPreferredValue(effectiveData as Record<string, any>, 'legalities');
+        const retreat = getPreferredValue(effectiveData as Record<string, any>, 'retreatCost');
+        const rules = getPreferredValue(effectiveData as Record<string, any>, 'rules');
 
         const renderField = (label: string, value: any) => (
           <div className="mb-6">
             <h4 className="text-md font-medium mb-2">{label}</h4>
             <div className="p-3 bg-white border border-gray-200 rounded text-sm text-gray-900">
               {value === null || value === undefined || (Array.isArray(value) && value.length === 0)
-                ? (useJapanese ? 'なし' : 'None')
+                ? 'None'
                 : typeof value === 'string'
-                  ? value
-                  : Array.isArray(value)
-                    ? value.map((v: any) => typeof v === 'object' ? JSON.stringify(v) : String(v)).join(', ')
-                    : typeof value === 'object'
-                      ? JSON.stringify(value)
-                      : String(value)
-              }
+                ? value
+                : Array.isArray(value)
+                ? value.map((v: any) => (typeof v === 'object' ? JSON.stringify(v) : String(v))).join(', ')
+                : typeof value === 'object'
+                ? JSON.stringify(value)
+                : String(value)}
             </div>
           </div>
         );
@@ -477,39 +400,34 @@ function renderJsonTable(data: Record<string, unknown>, useJapanese: boolean): R
           if (value === null || value === undefined) {
             return (
               <div className="mb-6">
-                <h4 className="text-md font-medium mb-2">{useJapanese ? 'リーガリティ' : 'Legalities'}</h4>
-                <div className="p-3 bg-white border border-gray-200 rounded text-sm text-gray-900">{useJapanese ? 'なし' : 'None'}</div>
+                <h4 className="text-md font-medium mb-2">Legalities</h4>
+                <div className="p-3 bg-white border border-gray-200 rounded text-sm text-gray-900">None</div>
               </div>
             );
           }
 
-          // If it's a string, just display it
           if (typeof value === 'string') {
-            return renderField(useJapanese ? 'リーガリティ' : 'Legalities', value);
+            return renderField('Legalities', value);
           }
 
-          // value should be an object like { standard: 'Legal', expanded: 'Legal' }
           const formatLabelsEn: Record<string, string> = { standard: 'Standard', expanded: 'Expanded', unlimited: 'Unlimited' };
-          const formatLabelsJa: Record<string, string> = { standard: 'スタンダード', expanded: 'エクスパンデッド', unlimited: 'アンリミテッド' };
-          const statusMapJa: Record<string, string> = { Legal: '使用可', Banned: '禁止', Restricted: '制限' };
-
           const entries = Object.entries(value as Record<string, any>);
           if (entries.length === 0) {
             return (
               <div className="mb-6">
-                <h4 className="text-md font-medium mb-2">{useJapanese ? 'リーガリティ' : 'Legalities'}</h4>
-                <div className="p-3 bg-white border border-gray-200 rounded text-sm text-gray-900">{useJapanese ? 'なし' : 'None'}</div>
+                <h4 className="text-md font-medium mb-2">Legalities</h4>
+                <div className="p-3 bg-white border border-gray-200 rounded text-sm text-gray-900">None</div>
               </div>
             );
           }
 
           return (
             <div className="mb-6">
-              <h4 className="text-md font-medium mb-2">{useJapanese ? 'リーガリティ' : 'Legalities'}</h4>
+              <h4 className="text-md font-medium mb-2">Legalities</h4>
               <div className="p-3 bg-white border border-gray-200 rounded text-sm text-gray-900">
                 {entries.map(([fmt, status], idx) => {
-                  const fmtLabel = useJapanese ? (formatLabelsJa[fmt] || fmt) : (formatLabelsEn[fmt] || fmt);
-                  const statusLabel = useJapanese ? (statusMapJa[status] || String(status)) : String(status);
+                  const fmtLabel = formatLabelsEn[fmt] || fmt;
+                  const statusLabel = String(status);
                   return (
                     <div key={idx} className="mb-1">
                       <strong className="mr-2">{fmtLabel}:</strong>
@@ -524,10 +442,10 @@ function renderJsonTable(data: Record<string, unknown>, useJapanese: boolean): R
 
         return (
           <>
-            {renderField(useJapanese ? '抵抗力' : 'Resistances', resist)}
+            {renderField('Resistances', resist)}
             {renderLegalities(legal)}
-            {renderField(useJapanese ? 'にげるコスト' : 'Retreat Cost', retreat)}
-            {renderField(useJapanese ? 'ルール' : 'Rules', rules)}
+            {renderField('Retreat Cost', retreat)}
+            {renderField('Rules', rules)}
           </>
         );
       })()}
@@ -548,12 +466,12 @@ function renderJsonTable(data: Record<string, unknown>, useJapanese: boolean): R
 }
 
 const CardDetailClient = ({ card }: { card: CardData }) => {
-  // always render English only (language toggle removed)
-  const useJapanese = false;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white rounded-lg shadow p-6">
+
+        {/* language selector removed - English-only UI */}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1 space-y-6">
@@ -576,21 +494,21 @@ const CardDetailClient = ({ card }: { card: CardData }) => {
             </div>
 
             <div>
-              <h3 className="text-lg font-medium mb-3">基本情報</h3>
+              <h3 className="text-lg font-medium mb-3">Basic Info</h3>
               <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
                 <tbody>
                   <tr>
-                    <th className="text-left p-2 w-32 text-gray-600 bg-gray-50">{useJapanese ? '名前' : 'Name'}</th>
-                    <td className="p-2">{getPreferredValue(card, 'name', useJapanese) || (useJapanese ? '不明' : 'Unknown')}</td>
+                    <th className="text-left p-2 w-32 text-gray-600 bg-gray-50">Name</th>
+                    <td className="p-2">{getPreferredValue(card, 'name') || 'Unknown'}</td>
                   </tr>
                   <tr>
-                    <th className="text-left p-2 text-gray-600 bg-gray-50">{useJapanese ? 'ゲームタイトル' : 'Game Title'}</th>
-                    <td className="p-2">{getPreferredValue(card, 'gameTitle', useJapanese) || (useJapanese ? '不明' : 'Unknown')}</td>
+                    <th className="text-left p-2 text-gray-600 bg-gray-50">Game Title</th>
+                    <td className="p-2">{getPreferredValue(card, 'gameTitle') || 'Unknown'}</td>
                   </tr>
-                  {getPreferredValue(card, 'expansion', useJapanese) && (
+                  {getPreferredValue(card, 'expansion') && (
                     <tr>
-                      <th className="text-left p-2 text-gray-600 bg-gray-50">{useJapanese ? '拡張パック' : 'Expansion'}</th>
-                      <td className="p-2">{getPreferredValue(card, 'expansion', useJapanese)}</td>
+                      <th className="text-left p-2 text-gray-600 bg-gray-50">Expansion</th>
+                      <td className="p-2">{getPreferredValue(card, 'expansion')}</td>
                     </tr>
                   )}
                   {card.setId && (
@@ -619,51 +537,51 @@ const CardDetailClient = ({ card }: { card: CardData }) => {
                       <td className="p-2">{card.hp}</td>
                     </tr>
                   )}
-                  {getPreferredValue(card, 'types', useJapanese) && Array.isArray(getPreferredValue(card, 'types', useJapanese)) && (getPreferredValue(card, 'types', useJapanese) as string[]).length > 0 && (
+                  {getPreferredValue(card, 'types') && Array.isArray(getPreferredValue(card, 'types')) && (getPreferredValue(card, 'types') as string[]).length > 0 && (
                     <tr>
-                      <th className="text-left p-2 text-gray-600 bg-gray-50">{useJapanese ? 'タイプ' : 'Types'}</th>
-                      <td className="p-2">{(getPreferredValue(card, 'types', useJapanese) as string[]).join(', ')}</td>
+                      <th className="text-left p-2 text-gray-600 bg-gray-50">Types</th>
+                      <td className="p-2">{(getPreferredValue(card, 'types') as string[]).join(', ')}</td>
                     </tr>
                   )}
-                  {(getPreferredValue(card, 'subtypes', useJapanese) || getPreferredValue(card, 'subtypesJa', useJapanese)) && (
+                  {(getPreferredValue(card, 'subtypes') || getPreferredValue(card, 'subtypesJa')) && (
                     <tr>
-                      <th className="text-left p-2 text-gray-600 bg-gray-50">{useJapanese ? 'サブタイプ' : 'Subtypes'}</th>
-                      <td className="p-2">{Array.isArray(getPreferredValue(card, 'subtypes', useJapanese) || getPreferredValue(card, 'subtypesJa', useJapanese)) ? (getPreferredValue(card, 'subtypes', useJapanese) || getPreferredValue(card, 'subtypesJa', useJapanese)).join(', ') : typeof (getPreferredValue(card, 'subtypes', useJapanese) || getPreferredValue(card, 'subtypesJa', useJapanese)) === 'string' ? (getPreferredValue(card, 'subtypes', useJapanese) || getPreferredValue(card, 'subtypesJa', useJapanese)).split(',').join(', ') : (getPreferredValue(card, 'subtypes', useJapanese) || getPreferredValue(card, 'subtypesJa', useJapanese))}</td>
+                      <th className="text-left p-2 text-gray-600 bg-gray-50">Subtypes</th>
+                      <td className="p-2">{Array.isArray(getPreferredValue(card, 'subtypes') || getPreferredValue(card, 'subtypesJa')) ? (getPreferredValue(card, 'subtypes') || getPreferredValue(card, 'subtypesJa')).join(', ') : typeof (getPreferredValue(card, 'subtypes') || getPreferredValue(card, 'subtypesJa')) === 'string' ? (getPreferredValue(card, 'subtypes') || getPreferredValue(card, 'subtypesJa')).split(',').join(', ') : (getPreferredValue(card, 'subtypes') || getPreferredValue(card, 'subtypesJa'))}</td>
                     </tr>
                   )}
                   {card.regulationMark && (
                     <tr>
-                      <th className="text-left p-2 text-gray-600 bg-gray-50">{useJapanese ? 'レギュレーション' : 'Regulation'}</th>
-                      <td className="p-2">{getPreferredValue(card, 'regulationMark', useJapanese) || card.regulationMark}</td>
+                      <th className="text-left p-2 text-gray-600 bg-gray-50">Regulation</th>
+                      <td className="p-2">{getPreferredValue(card, 'regulationMark') || card.regulationMark}</td>
                     </tr>
                   )}
                   {card.rarity && (
                     <tr>
-                      <th className="text-left p-2 text-gray-600 bg-gray-50">{useJapanese ? 'レアリティ' : 'Rarity'}</th>
-                      <td className="p-2">{getPreferredValue(card, 'rarity', useJapanese) || card.rarity}</td>
+                      <th className="text-left p-2 text-gray-600 bg-gray-50">Rarity</th>
+                      <td className="p-2">{getPreferredValue(card, 'rarity') || card.rarity}</td>
                     </tr>
                   )}
                   {card.artist && (
                     <tr>
-                      <th className="text-left p-2 text-gray-600 bg-gray-50">{useJapanese ? 'イラスト' : 'Artist'}</th>
-                      <td className="p-2">{getPreferredValue(card, 'artist', useJapanese) || card.artist}</td>
+                      <th className="text-left p-2 text-gray-600 bg-gray-50">Artist</th>
+                      <td className="p-2">{getPreferredValue(card, 'artist') || card.artist}</td>
                     </tr>
                   )}
                   {card.releaseDate && (
                     <tr>
-                      <th className="text-left p-2 text-gray-600 bg-gray-50">{useJapanese ? '発売日' : 'Release Date'}</th>
-                      <td className="p-2">{getPreferredValue(card, 'releaseDate', useJapanese) || card.releaseDate}</td>
+                      <th className="text-left p-2 text-gray-600 bg-gray-50">Release Date</th>
+                      <td className="p-2">{getPreferredValue(card, 'releaseDate') || card.releaseDate}</td>
                     </tr>
                   )}
-                  {(getPreferredValue(card, 'cardType', useJapanese) || getPreferredValue(card, 'cardTypeJa', useJapanese)) && (
+                  {(getPreferredValue(card, 'cardType') || getPreferredValue(card, 'cardTypeJa')) && (
                     <tr>
-                      <th className="text-left p-2 text-gray-600 bg-gray-50">{useJapanese ? 'カードタイプ' : 'Card Type'}</th>
-                      <td className="p-2">{getPreferredValue(card, 'cardType', useJapanese) || getPreferredValue(card, 'cardTypeJa', useJapanese) || card.cardType}</td>
+                      <th className="text-left p-2 text-gray-600 bg-gray-50">Card Type</th>
+                      <td className="p-2">{getPreferredValue(card, 'cardType') || getPreferredValue(card, 'cardTypeJa') || card.cardType}</td>
                     </tr>
                   )}
                   {card.supertype && (
                     <tr>
-                      <th className="text-left p-2 text-gray-600 bg-gray-50">{useJapanese ? 'スーパータイプ' : 'Supertype'}</th>
+                      <th className="text-left p-2 text-gray-600 bg-gray-50">Supertype</th>
                       <td className="p-2">{card.supertype}</td>
                     </tr>
                   )}
@@ -674,7 +592,7 @@ const CardDetailClient = ({ card }: { card: CardData }) => {
 
           <div className="lg:col-span-2">
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              {renderJsonTable(card as Record<string, unknown>, useJapanese)}
+              {renderJsonTable(card as Record<string, unknown>)}
             </div>
           </div>
         </div>

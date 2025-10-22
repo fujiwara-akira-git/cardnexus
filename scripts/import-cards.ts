@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 import fsSync from 'fs';
 import path from 'path';
 import * as dotenv from 'dotenv';
@@ -15,26 +16,29 @@ const prisma = new PrismaClient();
 /**
  * GitHubから取得したカードデータをPrismaのCard形式に変換
  */
-function transformCardData(card: any): any {
+function transformCardData(card: Record<string, unknown>): Record<string, unknown> {
+  const apiId = (card.id as string) || '';
+  const setId = apiId ? apiId.split('-')[0] : null;
+
   return {
-    apiId: card.id,
-    name: card.name,
+    apiId,
+    name: card.name as string,
     gameTitle: 'Pokemon TCG',
-    imageUrl: card.imageUrl,
-    rarity: card.rarity,
-    effectText: card.flavorText || null,
-    cardNumber: card.number,
-    expansion: card.setCode,
-    regulationMark: card.regulation || card.regulationMark || null,
-    cardType: card.supertype,
-    supertype: card.supertype,
-    hp: card.hp || null,
-    types: card.types ? card.types.join(', ') : null,
-    evolveFrom: card.evolvesFrom || null,
-    artist: card.artist,
-    subtypes: card.subtypes ? card.subtypes.join(', ') : null,
-    releaseDate: null, // GitHubデータには含まれていない
-    setId: card.id.split('-')[0], // Extract setId from card id
+  imageUrl: (card.imageUrl as string) || null,
+  rarity: (card.rarity as string) || null,
+  effectText: (card.flavorText as string) || null,
+  cardNumber: (card.number as string) || null,
+  expansion: (card.setCode as string) || null,
+  regulationMark: (card.regulation as string) || (card.regulationMark as string) || null,
+  cardType: (card.supertype as string) || null,
+  supertype: (card.supertype as string) || null,
+  hp: (card.hp as number) || null,
+  types: Array.isArray(card.types) ? (card.types as string[]).join(', ') : (card.types as string) || null,
+  evolveFrom: (card.evolvesFrom as string) || null,
+  artist: (card.artist as string) || null,
+  subtypes: Array.isArray(card.subtypes) ? (card.subtypes as string[]).join(', ') : (card.subtypes as string) || null,
+  releaseDate: null, // GitHubデータには含まれていない
+  setId,
 
     // 追加: Json型フィールド
     abilities: card.abilities || [],
@@ -44,7 +48,7 @@ function transformCardData(card: any): any {
     retreatCost: card.retreatCost || [],
     legalities: card.legalities || {},
     rules: card.rules || [],
-    source: card.source || null,
+    source: (card.source as string) || null,
     nationalPokedexNumbers: card.nationalPokedexNumbers || [],
   };
 }
@@ -52,7 +56,7 @@ function transformCardData(card: any): any {
 /**
  * JSONファイルからカードデータを読み込み
  */
-function loadCardData(filePath: string): any[] {
+function loadCardData(filePath: string): Record<string, unknown>[] {
   if (!fsSync.existsSync(filePath)) {
     console.error(`❌ ファイルが見つかりません: ${filePath}`);
     return [];
@@ -60,7 +64,7 @@ function loadCardData(filePath: string): any[] {
 
   try {
     const data = fsSync.readFileSync(filePath, 'utf8');
-    return JSON.parse(data);
+    return JSON.parse(data) as Record<string, unknown>[];
   } catch (error) {
     console.error(`❌ ファイル読み込みエラー: ${filePath}`, error);
     return [];
@@ -70,7 +74,7 @@ function loadCardData(filePath: string): any[] {
 /**
  * カードデータをデータベースにインポート（バッチ処理）
  */
-async function importCards(cards: any[], regulation: string): Promise<void> {
+async function importCards(cards: Record<string, unknown>[], regulation: string): Promise<void> {
   console.log(`📦 ${regulation}レギュレーション: ${cards.length}枚のカードをインポート開始`);
   
   const batchSize = 100; // バッチサイズ
@@ -79,15 +83,47 @@ async function importCards(cards: any[], regulation: string): Promise<void> {
   
   for (let i = 0; i < cards.length; i += batchSize) {
     const batch = cards.slice(i, i + batchSize);
-    const transformedBatch = batch.map(card => transformCardData(card));
+  const transformedBatch = batch.map(card => transformCardData(card));
     
     try {
       // upsertMany操作（存在しない場合は作成、存在する場合は更新）
       for (const cardData of transformedBatch) {
+        // Build a typed object for Prisma (pick known properties)
+        const cardCreate = {
+          apiId: cardData.apiId as string,
+          name: cardData.name as string,
+          gameTitle: cardData.gameTitle as string,
+          imageUrl: cardData.imageUrl as string | null,
+          rarity: cardData.rarity as string | null,
+          effectText: cardData.effectText as string | null,
+          cardNumber: cardData.cardNumber as string | null,
+          expansion: cardData.expansion as string | null,
+          regulationMark: cardData.regulationMark as string | null,
+          cardType: cardData.cardType as string | null,
+          supertype: cardData.supertype as string | null,
+          hp: cardData.hp as number | null,
+          types: cardData.types as string | null,
+          evolveFrom: cardData.evolveFrom as string | null,
+          artist: cardData.artist as string | null,
+          subtypes: cardData.subtypes as string | null,
+          releaseDate: cardData.releaseDate as string | null,
+          setId: cardData.setId as string | null,
+          abilities: cardData.abilities as Prisma.InputJsonValue,
+          attacks: cardData.attacks as Prisma.InputJsonValue,
+          weaknesses: cardData.weaknesses as Prisma.InputJsonValue,
+          resistances: cardData.resistances as Prisma.InputJsonValue,
+          retreatCost: cardData.retreatCost as Prisma.InputJsonValue,
+          legalities: cardData.legalities as Prisma.InputJsonValue,
+          rules: cardData.rules as Prisma.InputJsonValue,
+          source: cardData.source as string | null,
+          nationalPokedexNumbers: cardData.nationalPokedexNumbers as Prisma.InputJsonValue,
+          updatedAt: new Date(),
+        };
+
         await prisma.card.upsert({
-          where: { apiId: cardData.apiId },
-          update: cardData,
-          create: cardData,
+          where: { apiId: cardCreate.apiId },
+          update: cardCreate,
+          create: cardCreate,
         });
       }
       

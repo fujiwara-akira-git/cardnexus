@@ -47,28 +47,34 @@ function loadCardsFromFile(regulation: string): NormalizedCard[] {
   const rawCards = JSON.parse(content);
   
   // データをNormalizedCard形式に変換
-  return rawCards.map((card: any): NormalizedCard => {
+  return rawCards.map((card: unknown): NormalizedCard => {
+    const c = card as Record<string, unknown>;
     // apiIdからsetIdを抽出（例: "sv1-8" -> "sv1"）
-    const setId = card.id ? card.id.split('-')[0] : null;
-    
+    const id = typeof c.id === 'string' ? c.id : '';
+    const setId = id ? id.split('-')[0] : null;
+
+    const toString = (v: unknown) => (typeof v === 'string' ? v : '')
+    const toNullableString = (v: unknown) => (typeof v === 'string' ? v : null)
+    const toNumberOrNull = (v: unknown) => (typeof v === 'number' ? v : null)
+
     return {
-      apiId: card.id || '',
-      name: card.name || '',
+      apiId: id,
+      name: toString(c.name),
       gameTitle: 'ポケモンカード',
-      imageUrl: card.imageUrl || '',
-      rarity: card.rarity || null,
+      imageUrl: toString(c.imageUrl),
+      rarity: toNullableString(c.rarity),
       effectText: null, // 効果テキストは別途処理
-      cardNumber: card.number || '',
-      expansion: card.setCode || '',
+      cardNumber: toString(c.number),
+      expansion: toString(c.setCode),
       regulation: regulation,
-      cardType: card.supertype || '',
-      hp: card.hp || null,
-      types: Array.isArray(card.types) ? card.types.join(',') : card.types || null,
-      evolveFrom: card.evolvesFrom || null,
+      cardType: toString(c.supertype),
+      hp: toNumberOrNull(c.hp),
+      types: Array.isArray(c.types) ? (c.types as string[]).join(',') : toNullableString(c.types),
+      evolveFrom: toNullableString(c.evolvesFrom),
       releaseDate: '',
-      artist: card.artist || null,
-      subtypes: Array.isArray(card.subtypes) ? card.subtypes.join(',') : card.subtypes || null,
-      flavorText: card.flavorText || null,
+      artist: toNullableString(c.artist),
+      subtypes: Array.isArray(c.subtypes) ? (c.subtypes as string[]).join(',') : toNullableString(c.subtypes),
+      flavorText: toNullableString(c.flavorText),
       setId: setId,
     };
   });
@@ -184,8 +190,8 @@ async function importCards(regulation: string): Promise<number> {
     }
   }
 
-  console.log(`\n  完了: 新規${importCount}枚 / 更新${updateCount}枚 / スキップ${skipCount}枚`);
-  return importCount + updateCount;
+  console.log(`\n  完了: 新規${importCount}枚 / 追加${createCount}枚 / 更新${updateCount}枚 / スキップ${skipCount}枚`);
+  return importCount + updateCount + createCount;
 }
 
 /**
