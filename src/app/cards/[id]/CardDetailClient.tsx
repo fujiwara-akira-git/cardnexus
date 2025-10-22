@@ -108,7 +108,7 @@ function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
   };
 
   // (client-side translations removed)
-  const renderArrayAsTable = (key: string, array: unknown[], label: string): React.ReactNode => {
+    const renderArrayAsTable = (key: string, array: unknown[], label: string): React.ReactNode => {
     if (!Array.isArray(array)) return null;
 
           if (array.length === 0) {
@@ -162,7 +162,7 @@ function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
                   {columns.map(col => {
                   const value = getPreferredValue(item as Record<string, unknown>, col);
                   const displayValue = formatValue(value);
-                  const leftAlign = ['Abilities','Weaknesses','Attacks'].includes(label);
+                  const leftAlign = ['Abilities','Weaknesses','Attacks','Resistances'].includes(label);
                   return (
                     <td key={col} className={`px-4 py-2 text-gray-900 ${leftAlign ? 'text-left' : ''}`}>{displayValue}</td>
                   );
@@ -350,6 +350,11 @@ function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
         return renderArrayAsTable('weaknesses', weaknesses, 'Weaknesses');
       })()}
 
+      {(() => {
+        const resistances = Array.isArray((effectiveData as any).resistances) ? (effectiveData as any).resistances : [];
+        return renderArrayAsTable('resistances', resistances, 'Resistances');
+      })()}
+
       {/* always show effectText (効果) */}
       {(() => {
         const effect = getPreferredValue(effectiveData as Record<string, any>, 'effectText') as string | undefined;
@@ -374,7 +379,6 @@ function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
 
       {/* always show resistances, legalities, retreatCost, rules */}
       {(() => {
-        const resist = getPreferredValue(effectiveData as Record<string, any>, 'resistances');
         const legal = getPreferredValue(effectiveData as Record<string, any>, 'legalities');
         const retreat = getPreferredValue(effectiveData as Record<string, any>, 'retreatCost');
         const rules = getPreferredValue(effectiveData as Record<string, any>, 'rules');
@@ -442,7 +446,6 @@ function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
 
         return (
           <>
-            {renderField('Resistances', resist)}
             {renderLegalities(legal)}
             {renderField('Retreat Cost', retreat)}
             {renderField('Rules', rules)}

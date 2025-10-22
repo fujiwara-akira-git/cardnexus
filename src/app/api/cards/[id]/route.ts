@@ -348,9 +348,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           return parsed;
         } catch { return parsed; }
       })(),
-      weaknesses: decodeTextFields(card.weaknesses),
-      resistances: decodeTextFields(card.resistances),
-      retreatCost: decodeTextFields(card.retreatCost),
+      weaknesses: (() => {
+        const parsed = parseJsonIfString(card.weaknesses);
+        return decodeTextFields(parsed);
+      })(),
+      resistances: (() => {
+        const parsed = parseJsonIfString(card.resistances);
+        return decodeTextFields(parsed);
+      })(),
+      retreatCost: (() => {
+        const parsed = parseJsonIfString(card.retreatCost);
+        return decodeTextFields(parsed);
+      })(),
       legalities: (() => {
         const parsed = parseJsonIfString(card.legalities);
         return decodeTextFields(parsed);
