@@ -11,15 +11,47 @@ dotenv.config({ path: process.cwd() + '/.env.local' })
 export async function GET(request: NextRequest) {
   try {
     console.log('=== SIMPLE DECKS API ===');
-    console.log('DATABASE_URL:', process.env.DATABASE_URL?.substring(0, 50));
 
-    // シンプルにデッキ数を取得
-    const total = await prisma.deck.count();
-    console.log('Total decks found:', total);
+    const url = new URL(request.url);
+    const params = url.searchParams;
+    const page = Math.max(1, parseInt(params.get('page') || '1', 10) || 1);
+    const limit = Math.max(1, parseInt(params.get('limit') || '12', 10) || 12);
+    const search = params.get('search') || '';
+    const gameTitle = params.get('gameTitle') || '';
+    const format = params.get('format') || '';
+    const sortBy = params.get('sortBy') || 'createdAt';
+    const sortOrder = (params.get('sortOrder') || 'desc') as 'asc' | 'desc';
 
-    // デッキデータを取得（最初の5件）
+  // Build where clause from filters
+  // Use a typed where clause compatible with Prisma (Record<string, unknown>)
+  const where: Record<string, unknown> = {};
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+    if (gameTitle) where.gameTitle = gameTitle;
+    if (format) where.format = format;
+
+    // total count with filters
+    const total = await prisma.deck.count({ where });
+
+  // Determine orderBy mapping
+  // Prisma 'orderBy' accepts Record<string, 'asc'|'desc'> or an array. Use a loose typed object.
+  let orderBy: Record<string, 'asc' | 'desc'> = { createdAt: sortOrder };
+  if (sortBy === 'popularity') orderBy = { likeCount: sortOrder };
+  else if (sortBy === 'views') orderBy = { viewCount: sortOrder };
+  else if (sortBy === 'updatedAt') orderBy = { updatedAt: sortOrder };
+
+    // calculate skip/take
+    const skip = (page - 1) * limit;
+
     const decks = await prisma.deck.findMany({
-      take: 5,
+      where,
+      take: limit,
+      skip,
+      orderBy,
       include: {
         user: {
           select: {
@@ -38,7 +70,6 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // レスポンス用に整形
     const formattedDecks = decks.map(deck => ({
       id: deck.id,
       name: deck.name,
@@ -58,23 +89,24 @@ export async function GET(request: NextRequest) {
       sampleCards: [],
     }));
 
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+
     return NextResponse.json({
       success: true,
       data: {
         decks: formattedDecks,
         pagination: {
-          currentPage: 1,
-          totalPages: Math.ceil(total / 12),
+          currentPage: page,
+          totalPages,
           totalItems: total,
-          hasNext: total > 5,
-          hasPrev: false,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
         },
       },
       debug: {
-        total: total,
+        total,
         decksReturned: formattedDecks.length,
-        databaseUrl: process.env.DATABASE_URL?.substring(0, 50)
-      }
+      },
     })
   } catch (error) {
     console.error('デッキ取得エラー:', error)

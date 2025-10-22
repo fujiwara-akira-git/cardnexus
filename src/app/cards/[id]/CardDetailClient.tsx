@@ -194,7 +194,7 @@ function renderJsonTable(data: Record<string, unknown>, useJapanese: boolean): R
           <table className="min-w-full text-sm border border-gray-200 bg-white rounded">
             <tbody>
               <tr>
-                <td className={`px-4 py-2 text-gray-500 ${['Abilities','特性','Weaknesses','弱点'].includes(label) ? 'text-left' : 'text-center'}`}>{useJapanese ? 'なし' : 'None'}</td>
+                <td className={`px-4 py-2 text-gray-500 ${['Abilities','特性','Weaknesses','弱点','Attacks','ワザ'].includes(label) ? 'text-left' : 'text-center'}`}>{useJapanese ? 'なし' : 'None'}</td>
               </tr>
             </tbody>
           </table>
@@ -238,7 +238,7 @@ function renderJsonTable(data: Record<string, unknown>, useJapanese: boolean): R
                   {columns.map(col => {
                   const value = getPreferredValue(item as Record<string, unknown>, col, useJapanese);
                   const displayValue = formatValue(value);
-                  const leftAlign = ['Abilities','特性','Weaknesses','弱点'].includes(label);
+                  const leftAlign = ['Abilities','特性','Weaknesses','弱点','Attacks','ワザ'].includes(label);
                   return (
                     <td key={col} className={`px-4 py-2 text-gray-900 ${leftAlign ? 'text-left' : ''}`}>{displayValue}</td>
                   );
