@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -469,19 +469,7 @@ function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
 }
 
 const CardDetailClient = ({ card }: { card: CardData }) => {
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const lightboxRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setLightboxOpen(false);
-    };
-    if (lightboxOpen) window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [lightboxOpen]);
-
-  const openLightbox = () => setLightboxOpen(true);
-  const closeLightbox = () => setLightboxOpen(false);
+  // image opens in a new tab when clicked
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -493,16 +481,17 @@ const CardDetailClient = ({ card }: { card: CardData }) => {
           <div className="lg:col-span-1 space-y-6">
             <div className="flex justify-center">
               {card.imageUrl ? (
-                <Image
-                  src={card.imageUrl}
-                  alt={card.name}
-                  width={320}
-                  height={448}
-                  className="rounded-lg border bg-white cursor-pointer"
-                  onClick={openLightbox}
-                  style={{ objectFit: "contain" }}
-                  priority
-                />
+                <a href={card.imageUrl} target="_blank" rel="noopener noreferrer" className="block">
+                  <Image
+                    src={card.imageUrl}
+                    alt={card.name}
+                    width={320}
+                    height={448}
+                    className="rounded-lg border bg-white cursor-pointer"
+                    style={{ objectFit: "contain" }}
+                    priority
+                  />
+                </a>
               ) : (
                 <div className="w-80 h-96 bg-gray-200 rounded-lg flex items-center justify-center">
                   <span className="text-gray-400">No Image</span>
@@ -614,15 +603,6 @@ const CardDetailClient = ({ card }: { card: CardData }) => {
           </div>
         </div>
       </div>
-      {lightboxOpen && card.imageUrl ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70" role="dialog" aria-modal="true">
-          <div className="max-w-full max-h-full p-4" onClick={closeLightbox} ref={lightboxRef}>
-            <div className="mx-auto" style={{ maxWidth: '90vw', maxHeight: '90vh' }}>
-              <Image src={card.imageUrl} alt={card.name} width={800} height={1120} className="rounded shadow-lg" style={{ objectFit: 'contain', maxWidth: '90vw', maxHeight: '90vh' }} unoptimized />
-            </div>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 };
