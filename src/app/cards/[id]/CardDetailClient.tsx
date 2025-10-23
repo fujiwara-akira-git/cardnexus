@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -469,6 +469,19 @@ function renderJsonTable(data: Record<string, unknown>): React.JSX.Element {
 }
 
 const CardDetailClient = ({ card }: { card: CardData }) => {
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const lightboxRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightboxOpen(false);
+    };
+    if (lightboxOpen) window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [lightboxOpen]);
+
+  const openLightbox = () => setLightboxOpen(true);
+  const closeLightbox = () => setLightboxOpen(false);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -485,7 +498,8 @@ const CardDetailClient = ({ card }: { card: CardData }) => {
                   alt={card.name}
                   width={320}
                   height={448}
-                  className="rounded-lg border bg-white"
+                  className="rounded-lg border bg-white cursor-pointer"
+                  onClick={openLightbox}
                   style={{ objectFit: "contain" }}
                   priority
                 />
@@ -600,6 +614,15 @@ const CardDetailClient = ({ card }: { card: CardData }) => {
           </div>
         </div>
       </div>
+      {lightboxOpen && card.imageUrl ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70" role="dialog" aria-modal="true">
+          <div className="max-w-full max-h-full p-4" onClick={closeLightbox} ref={lightboxRef}>
+            <div className="mx-auto" style={{ maxWidth: '90vw', maxHeight: '90vh' }}>
+              <Image src={card.imageUrl} alt={card.name} width={800} height={1120} className="rounded shadow-lg" style={{ objectFit: 'contain', maxWidth: '90vw', maxHeight: '90vh' }} unoptimized />
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };
